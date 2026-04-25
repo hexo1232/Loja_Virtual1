@@ -25,7 +25,7 @@ $result_pedidos = $stmt_pedidos->get_result();
     <title>Histórico de Compras</title>
   
         <script src="logout_auto.js"></script>
-  
+      <link rel="stylesheet" href="css/cliente.css">
  
       
     </style>
