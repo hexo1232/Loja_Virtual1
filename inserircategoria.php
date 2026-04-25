@@ -19,25 +19,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         echo "<p style='color:red;'>Já existe uma categoria com esse nome.</p>";
     } else {
         // Insere a nova categoria
-        $stmt = $conexao->prepare("INSERT INTO Categoria (nome_categoria, descricao_categoria) VALUES (?, ?)");
-        $stmt->bind_param("ss", $nome_categoria, $descricao_categoria);
-        $stmt->execute();
+        $stmt = $conexao->prepare("INSERT INTO categoria (nome_categoria, descricao_categoria) VALUES (?, ?)");
+$stmt->bind_param("ss", $nome_categoria, $descricao_categoria);
+$stmt->execute();
 
-        $id_categoria = $stmt->insert_id;
+$id_categoria = $stmt->insert_id;
 
-        // Associa as marcas
-        foreach ($marcas as $id_marca) {
-            // Verifica se a associação já existe
-            $verifica = $conexao->prepare("SELECT * FROM Categoria_Marca WHERE id_categoria = ? AND id_marca = ?");
-            $verifica->bind_param("ii", $id_categoria, $id_marca);
-            $verifica->execute();
-            $res_verifica = $verifica->get_result();
+// 2. Corrija o SELECT e o INSERT da tabela associativa (estavam Categoria_Marca)
+foreach ($marcas as $id_marca) {
+    $verifica = $conexao->prepare("SELECT * FROM categoria_marca WHERE id_categoria = ? AND id_marca = ?");
+    $verifica->bind_param("ii", $id_categoria, $id_marca);
+    $verifica->execute();
+    $res_verifica = $verifica->get_result();
 
-            if ($res_verifica->num_rows == 0) {
-                $insere = $conexao->prepare("INSERT INTO Categoria_Marca (id_categoria, id_marca) VALUES (?, ?)");
-                $insere->bind_param("ii", $id_categoria, $id_marca);
-                $insere->execute();
-            }
+    if ($res_verifica->num_rows == 0) {
+        $insere = $conexao->prepare("INSERT INTO categoria_marca (id_categoria, id_marca) VALUES (?, ?)");
+        $insere->bind_param("ii", $id_categoria, $id_marca);
+        $insere->execute();
+    }
+
         }
 
         echo "<p style='color:green;'>Categoria cadastrada com sucesso!</p>";

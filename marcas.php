@@ -169,15 +169,17 @@ background-color:  #024185ff;
             <th>Ações</th>
         </tr>
 
-        <?php
-        $marcas = $conexao->query("SELECT * FROM Marca");
+       <?php
+        // Correção: "Marca" alterado para "marca" (minúsculo)
+        $marcas = $conexao->query("SELECT * FROM marca");
         while ($mar = $marcas->fetch_assoc()) {
             echo "<tr>";
             echo "<td>" . htmlspecialchars($mar['nome_marca']) . "</td>";
-          
+            
 
             // Busca marcas associadas
             $id_marca = $mar['id_marca'];
+            // Garante que categoria_marca e categoria também estão em minúsculo
             $categorias = $conexao->prepare("SELECT c.nome_categoria FROM categoria_marca cm JOIN categoria c ON cm.id_categoria = c.id_categoria WHERE cm.id_marca = ?");
             $categorias->bind_param("i", $id_marca);
             $categorias->execute();
@@ -189,8 +191,8 @@ background-color:  #024185ff;
             echo "<td>" . implode(", ", $nomes_categorias) . "</td>";
 
             echo "<td>
-                   
-                      <a href='editarmarca.php?id=$id_marca'><button class='Editar'>Editar</button></a> 
+                    
+                       <a href='editarmarca.php?id=$id_marca'><button class='Editar'>Editar</button></a> 
 
                     <a href='excluirmarca.php?id=$id_marca' onclick=\"return confirm('Tem certeza que deseja excluir esta marca?')\">
                     
