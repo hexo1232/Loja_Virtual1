@@ -256,6 +256,5 @@ margin-bottom:10px;}
         </div>
 </body>
 </html>
-<?php
-include "conexao.php";
+
 
