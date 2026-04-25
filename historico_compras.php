@@ -26,65 +26,7 @@ $result_pedidos = $stmt_pedidos->get_result();
   
         <script src="logout_auto.js"></script>
   
-    <style>
-        body { font-family: Arial; background: #f4f4f4; padding: 20px; }
-        .pedido { background: #fff; padding: 15px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 5px #ccc; }
-        .produto { border: 1px solid #ddd; border-radius: 8px; padding: 20px; margin: 15px 0; background: white; display: flex; gap: 20px; align-items: center;   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s, box-shadow 0.2s; }
-        .produto img {width: 20%; height: 20%; border-radius: 8px; cursor: pointer;    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s, box-shadow 0.2s;}
-  .produto img:hover{
-
- transform:scale(1.1); 
-  }
-
-  
-        .info { flex-grow: 1; }
-        h2 { color: #333; }
-        .valor { color: #008000; font-weight: bold; }
-        .imprimir { margin-top: 10px; }
-      
-      .sidebar {
-          position: fixed;
-          left: 0;
-          top: 0;
-          width: 200px;
-          height: 100%;
-          background:#eee;
-          padding: 20px;
-          box-shadow: 2px 0 5px rgba(0,0,0,0.05);
-          display:flex;
-          flex-direction:column;
-          gap:10px;
-      }
-      .sidebar a { text-decoration:none; color:#333;}
-      .sidebar a:hover{ background-color:gray;
-    transform:scale(1.1);  }
-    
-            
-    
-      .conteudo {
-          margin-left: 220px;
-      }
-
-
-      .imprimir {
-  padding: 10px;
-   width: 120px;
-  background-color: #007bff;
-  color: white;
  
-  border: none;
-  border-radius: 6px;
-  transition: background-color 0.3s;
-}
- .imprimir a { text-decoration:none; color:#fff;   }
-.imprimir:hover {
-  background-color: #0056b3;
-   cursor: pointer; 
-   transform:scale(1.1);  
-}
-  
       
     </style>
 </head>

@@ -48,7 +48,8 @@ $result = $conexao->query($sql);
     
     <title>Dashboard - Pedidos</title>
       
-        <script src="logout_auto.js"></script>
+        <script src="logout_auto.js"></script>'
+        
     <style>
 
         body {
