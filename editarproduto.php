@@ -247,7 +247,7 @@ margin-bottom:10px;}
         <label>Categoria:</label>
         <select name="categoria" id="categoria" onchange="carregarMarcas()" required>
             <?php
-            $categorias = $conexao->query("SELECT * FROM Categoria");
+            $categorias = $conexao->query("SELECT * FROM categoria");
             while ($cat = $categorias->fetch_assoc()) {
                 $selected = ($cat['id_categoria'] == $produto['id_categoria']) ? "selected" : "";
                 echo "<option value='{$cat['id_categoria']}' $selected>{$cat['nome_categoria']}</option>";
@@ -258,7 +258,7 @@ margin-bottom:10px;}
         <label>Marca:</label>
         <select name="marca" id="marca" required>
             <?php
-            $marcas = $conexao->query("SELECT * FROM Marca");
+            $marcas = $conexao->query("SELECT * FROM marca");
             while ($m = $marcas->fetch_assoc()) {
                 $selected = ($m['id_marca'] == $produto['id_marca']) ? "selected" : "";
                 echo "<option value='{$m['id_marca']}' $selected>{$m['nome_marca']}</option>";
@@ -269,7 +269,7 @@ margin-bottom:10px;}
         <label>Fornecedor:</label>
         <select name="fornecedor" required>
             <?php
-            $fornecedores = $conexao->query("SELECT * FROM Fornecedor");
+            $fornecedores = $conexao->query("SELECT * FROM fornecedor");
             while ($f = $fornecedores->fetch_assoc()) {
                 $selected = ($f['id_fornecedor'] == $produto['id_fornecedor']) ? "selected" : "";
                 echo "<option value='{$f['id_fornecedor']}' $selected>{$f['nome_fornecedor']}</option>";
