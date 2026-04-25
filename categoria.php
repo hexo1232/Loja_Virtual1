@@ -171,7 +171,7 @@ background-color:  #024185ff;
         </tr>
 
         <?php
-        $categorias = $conexao->query("SELECT * FROM Categoria");
+        $categorias = $conexao->query("SELECT * FROM categoria");
         while ($cat = $categorias->fetch_assoc()) {
             echo "<tr>";
             echo "<td>" . htmlspecialchars($cat['nome_categoria']) . "</td>";

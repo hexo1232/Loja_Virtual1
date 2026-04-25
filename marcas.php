@@ -1,7 +1,3 @@
-
-
-
-
 <?php
 include "conexao.php";
 require_once "require_login.php";
@@ -182,7 +178,7 @@ background-color:  #024185ff;
 
             // Busca marcas associadas
             $id_marca = $mar['id_marca'];
-            $categorias = $conexao->prepare("SELECT c.nome_categoria FROM Categoria_Marca cm JOIN Categoria c ON cm.id_categoria = c.id_categoria WHERE cm.id_marca = ?");
+            $categorias = $conexao->prepare("SELECT c.nome_categoria FROM categoria_marca cm JOIN categoria c ON cm.id_categoria = c.id_categoria WHERE cm.id_marca = ?");
             $categorias->bind_param("i", $id_marca);
             $categorias->execute();
             $res = $categorias->get_result();

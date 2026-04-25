@@ -10,7 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $marcas = $_POST['marcas'] ?? [];
 
     // Verifica se a categoria já existe
-    $stmt = $conexao->prepare("SELECT id_categoria FROM Categoria WHERE nome_categoria = ?");
+    $stmt = $conexao->prepare("SELECT id_categoria FROM categoria WHERE nome_categoria = ?");
     $stmt->bind_param("s", $nome_categoria);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -159,7 +159,7 @@ margin-bottom:10px;}
 
         <label>Marcas Associadas:</label><br>
         <?php
-        $marcas = $conexao->query("SELECT * FROM Marca");
+        $marcas = $conexao->query("SELECT * FROM marca");
         while ($marca = $marcas->fetch_assoc()) {
             echo "<label><input type='checkbox' name='marcas[]' value='{$marca['id_marca']}'> {$marca['nome_marca']}</label><br>";
         }
