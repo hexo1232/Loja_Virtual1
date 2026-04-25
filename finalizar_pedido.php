@@ -118,23 +118,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmtEstoque->execute();
     }
 
-    // 3. Finalizar carrinho
-    $stmtFC = $conexao->prepare("UPDATE carrinho SET status = 'finalizado' WHERE id_carrinho = ?");
-    $stmtFC->bind_param("i", $id_carrinho);
-    $stmtFC->execute();
+    
 
-    $stmtDI = $conexao->prepare("DELETE FROM item_carrinho WHERE id_carrinho = ?");
-    $stmtDI->bind_param("i", $id_carrinho);
-    $stmtDI->execute();
-
-    // ===== BIFURCAÇÃO: PayPal (apenas cria pedido, devolve JSON) vs outros métodos =====
+      // BIFURCAÇÃO
     if (isset($_POST['apenas_criar_pedido'])) {
-        // Chamada AJAX do botão PayPal — não regista pagamento ainda (será feito no capture-order.php)
+        // Guardar id_carrinho na sessão para limpar depois no capture
+        $_SESSION['paypal_carrinho'] = $id_carrinho;
         header('Content-Type: application/json');
         echo json_encode(['id_pedido' => $id_pedido]);
         exit;
     }
-
     // 4. Para outros métodos: registar pagamento imediatamente (simulação)
     $status_pagamento = 'pago';
     $data_pagamento   = date("Y-m-d H:i:s");
@@ -281,9 +274,10 @@ function mostrarFormularioPagamento() {
     const alvo = document.getElementById("formulario-" + metodo);
     if (alvo) alvo.style.display = 'block';
 
-    if (metodo == '1') { // 1 = PayPal na tua BD
-        inicializarPayPal();
-    }
+    // Esconde o botão submit quando é PayPal
+    document.querySelector('.btn-finalizar').style.display = (metodo == '1') ? 'none' : 'block';
+
+    if (metodo == '1') inicializarPayPal();
 }
 
 function inicializarPayPal() {

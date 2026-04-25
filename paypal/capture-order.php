@@ -109,9 +109,22 @@ try {
     error_log('Erro ao inserir pagamento: ' . $e->getMessage());
 }
 
-// 7. Limpar sessão
-unset($_SESSION['paypal_pending']);
+// 7. Limpar carrinho agora que o pagamento foi confirmado
+$id_carrinho = $_SESSION['paypal_carrinho'] ?? 0;
+if ($id_carrinho) {
+    $stmtFC = $conexao->prepare("UPDATE carrinho SET status = 'finalizado' WHERE id_carrinho = ?");
+    $stmtFC->bind_param("i", $id_carrinho);
+    $stmtFC->execute();
 
-// 8. Redirecionar para página de sucesso no próprio site
+    $stmtDI = $conexao->prepare("DELETE FROM item_carrinho WHERE id_carrinho = ?");
+    $stmtDI->bind_param("i", $id_carrinho);
+    $stmtDI->execute();
+}
+
+// 8. Limpar sessão
+unset($_SESSION['paypal_pending']);
+unset($_SESSION['paypal_carrinho']);
+
+// 9. Redirecionar
 header("Location: /sucesso.php?id_pedido=$id_pedido");
 exit;

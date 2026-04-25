@@ -1,79 +1,71 @@
 <?php
+//editarproduto.php
+ob_start();
 include "conexao.php";
 require_once "require_login.php";
 include "usuario_info.php";
 
-ob_start(); // Evita erros de cabeçalho
-
-
-// Verifica se o ID do produto foi passado
 if (!isset($_GET['id']) || empty($_GET['id'])) {
     echo "Produto inválido.";
     exit;
 }
 
 $id_produto = intval($_GET['id']);
-$mensagem = "";
+$mensagem   = "";
 
-// Atualização
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $nome = $_POST['nome'];
-    $descricao = $_POST['descricao'];
-    $preco = $_POST['preco'];
-    $quantidade = $_POST['quantidade'];
+    $nome         = $_POST['nome'];
+    $descricao    = $_POST['descricao'];
+    $preco        = $_POST['preco'];
+    $quantidade   = $_POST['quantidade'];
     $id_categoria = $_POST['categoria'];
-    $id_marca = $_POST['marca'];
-    $id_fornecedor = $_POST['fornecedor'];
+    $id_marca     = $_POST['marca'];
+    $id_fornecedor= $_POST['fornecedor'];
 
     $stmt = $conexao->prepare("UPDATE produto SET nome_produto=?, descricao=?, preco=?, quantidade_estoque=?, id_categoria=?, id_marca=?, id_fornecedor=? WHERE id_produto=?");
     $stmt->bind_param("ssdiiiii", $nome, $descricao, $preco, $quantidade, $id_categoria, $id_marca, $id_fornecedor, $id_produto);
     $stmt->execute();
 
-    // Atualiza imagem principal
+    $houveAlteracao = $stmt->affected_rows > 0; // inicialização correcta
+
     if (isset($_POST['imagem_principal'])) {
         $conexao->query("UPDATE produto_imagem SET imagem_principal = 0 WHERE id_produto = $id_produto");
         $img_principal = intval($_POST['imagem_principal']);
         $conexao->query("UPDATE produto_imagem SET imagem_principal = 1 WHERE id_imagem = $img_principal");
+        $houveAlteracao = true;
     }
 
-    // Adiciona novas imagens
     foreach ($_FILES['imagens']['tmp_name'] as $index => $tmp_name) {
         if (!empty($tmp_name)) {
             $nome_arquivo = basename($_FILES['imagens']['name'][$index]);
-            $destino = "uploads/" . time() . "_" . $nome_arquivo;
+            $destino      = "uploads/" . time() . "_" . $nome_arquivo;
 
             if (move_uploaded_file($tmp_name, $destino)) {
-                $legenda = $_POST['legenda'][$index] ?? '';
+                $legenda          = $_POST['legenda'][$index] ?? '';
                 $imagem_principal = 0;
 
                 $stmt_img = $conexao->prepare("INSERT INTO produto_imagem (id_produto, caminho_imagem, legenda, imagem_principal) VALUES (?, ?, ?, ?)");
                 $stmt_img->bind_param("issi", $id_produto, $destino, $legenda, $imagem_principal);
                 $stmt_img->execute();
-                  $houveAlteracao = true;
+                $houveAlteracao = true;
             }
         }
     }
-   if ($houveAlteracao) {
-    $mensagem = "✅Produto atualizado com sucesso!";
-} elseif (!empty($_GET['imagemRemovida'])) {
-    $mensagem = "🖼️ Imagem removida com sucesso!";
-} else {
-    $mensagem = "ℹ️ Nenhuma modificação foi feita.";
+
+    if ($houveAlteracao) {
+        $mensagem = "✅ Produto atualizado com sucesso!";
+    } elseif (!empty($_GET['imagemRemovida'])) {
+        $mensagem = "🖼️ Imagem removida com sucesso!";
+    } else {
+        $mensagem = "ℹ️ Nenhuma modificação foi feita.";
+    }
 }
 
-}
-
-   
-
-
-// Consulta produto
 $stmt = $conexao->prepare("SELECT * FROM produto WHERE id_produto = ?");
 $stmt->bind_param("i", $id_produto);
 $stmt->execute();
-$resultado = $stmt->get_result();
-$produto = $resultado->fetch_assoc();
+$produto = $stmt->get_result()->fetch_assoc();
 
-// Consulta imagens
 $imagens = $conexao->query("SELECT * FROM produto_imagem WHERE id_produto = $id_produto");
 ?>
 
