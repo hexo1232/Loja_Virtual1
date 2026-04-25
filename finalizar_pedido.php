@@ -67,7 +67,7 @@ while ($item = $resultItens->fetch_assoc()) {
 // ===== PROCESSAR POST =====
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $telefone = htmlspecialchars(trim($_POST['telefone']));
+    $telefone    = htmlspecialchars(trim($_POST['telefone']));
     $email       = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
     $idprovincia = filter_var($_POST['idprovincia'], FILTER_VALIDATE_INT);
     $idcidade    = filter_var($_POST['idcidade'], FILTER_VALIDATE_INT);
@@ -118,16 +118,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmtEstoque->execute();
     }
 
-    
-
-      // BIFURCAÇÃO
+    // BIFURCAÇÃO
     if (isset($_POST['apenas_criar_pedido'])) {
-        // Guardar id_carrinho na sessão para limpar depois no capture
         $_SESSION['paypal_carrinho'] = $id_carrinho;
         header('Content-Type: application/json');
         echo json_encode(['id_pedido' => $id_pedido]);
         exit;
     }
+
     // 4. Para outros métodos: registar pagamento imediatamente (simulação)
     $status_pagamento = 'pago';
     $data_pagamento   = date("Y-m-d H:i:s");
@@ -165,12 +163,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <meta charset="UTF-8">
     <title>Finalizar Pedido (Simulação)</title>
     <link rel="stylesheet" href="css/cliente.css">
-      <script src="js/hamburger.js" defer></script>
-
-  <script src="https://www.paypal.com/sdk/js?client-id=<?= htmlspecialchars(getenv('PAYPAL_CLIENT_ID')) ?>&currency=USD"></script>
+    <script src="js/hamburger.js" defer></script>
+    <script src="https://www.paypal.com/sdk/js?client-id=<?= htmlspecialchars(getenv('PAYPAL_CLIENT_ID')) ?>&currency=USD"></script>
 </head>
 <body>
-    
+
 <?php
 if ($usuario) {
     $nome2        = $usuario['nome']    ?? '';
@@ -179,10 +176,14 @@ if ($usuario) {
     $iniciais     = strtoupper(substr($nome2, 0, 1) . substr($apelido, 0, 1));
     $nomeCompleto = trim("$nome2 $apelido");
 
-    function gerarCor($texto) {
-        $hash = md5($texto);
-        return 'rgb(' . hexdec(substr($hash,0,2)) . ',' . hexdec(substr($hash,2,2)) . ',' . hexdec(substr($hash,4,2)) . ')';
+    // Guarda contra redeclaração — gerarCor pode já ter sido declarada em usuario_info.php
+    if (!function_exists('gerarCor')) {
+        function gerarCor($texto) {
+            $hash = md5($texto);
+            return 'rgb(' . hexdec(substr($hash,0,2)) . ',' . hexdec(substr($hash,2,2)) . ',' . hexdec(substr($hash,4,2)) . ')';
+        }
     }
+
     $corAvatar = gerarCor($nomeCompleto);
 }
 ?>
@@ -258,147 +259,139 @@ if ($usuario) {
 
 </aside>
 
-    <div class="conteudo">
-        <h2>Resumo da Compra</h2>
-        
-        <?php foreach ($itens as $item): ?>
-            <div class="card">
-                <img src="<?= htmlspecialchars($item['imagem_principal'] ?? 'imagens/sem_imagem.jpg') ?>">
-                <div>
-                    <strong><?= htmlspecialchars($item['nome_produto']) ?></strong><br>
-                    <small>Qtd: <?= $item['quantidade'] ?> | Subtotal: <?= number_format($item['subtotal'], 2) ?> MZN</small>
-                </div>
+<div class="conteudo">
+    <h2>Resumo da Compra</h2>
+
+    <?php foreach ($itens as $item): ?>
+        <div class="card">
+            <img src="<?= htmlspecialchars($item['imagem_principal'] ?? 'imagens/sem_imagem.jpg') ?>">
+            <div>
+                <strong><?= htmlspecialchars($item['nome_produto']) ?></strong><br>
+                <small>Qtd: <?= $item['quantidade'] ?> | Subtotal: <?= number_format($item['subtotal'], 2) ?> MZN</small>
             </div>
-        <?php endforeach; ?>
+        </div>
+    <?php endforeach; ?>
 
-        <h3 style="color: #d9534f;">Total Geral: <?= number_format($total, 2, ',', '.') ?> MZN</h3>
-        <hr>
+    <h3 style="color: #d9534f;">Total Geral: <?= number_format($total, 2, ',', '.') ?> MZN</h3>
+    <hr>
 
-        <form method="post">
-            <h3>Dados de Entrega</h3>
-            <label>Telefone para contacto:</label><br>
-            <input type="text" name="telefone" required placeholder="Ex: 841234567"><br>
-            
-            <label>E-mail de confirmação:</label><br>
-            <input type="email" name="email" required value="<?= htmlspecialchars($usuario['email'] ?? '') ?>"><br>
+    <form method="post">
+        <h3>Dados de Entrega</h3>
+        <label>Telefone para contacto:</label><br>
+        <input type="text" name="telefone" required placeholder="Ex: 841234567"><br>
 
-            <label>Província:</label><br>
-            <select name="idprovincia" id="idprovincia" onchange="carregarCidades()" required>
-                <option value="">Selecione a Província</option>
-                <?php
-                $prov = $conexao->query("SELECT * FROM provincia");
-                while ($p = $prov->fetch_assoc()) {
-                    echo "<option value='{$p['idprovíncia']}'>{$p['nome_província']}</option>";
-                }
-                ?>
-            </select><br>
+        <label>E-mail de confirmação:</label><br>
+        <input type="email" name="email" required value="<?= htmlspecialchars($usuario['email'] ?? '') ?>"><br>
 
-            <label>Cidade/Distrito:</label><br>
-            <select name="idcidade" id="idcidade" required>
-                <option value="">Selecione a província primeiro</option>
-            </select><br>
+        <label>Província:</label><br>
+        <select name="idprovincia" id="idprovincia" onchange="carregarCidades()" required>
+            <option value="">Selecione a Província</option>
+            <?php
+            $prov = $conexao->query("SELECT * FROM provincia");
+            while ($p = $prov->fetch_assoc()) {
+                echo "<option value='{$p['idprovíncia']}'>{$p['nome_província']}</option>";
+            }
+            ?>
+        </select><br>
 
-            <h3>Forma de Pagamento</h3>
-            <select name="metodo" id="metodo" onchange="mostrarFormularioPagamento()" required>
-                <option value="">Escolha como pagar</option>
-                <?php
-                $met = $conexao->query("SELECT * FROM tipo_pagamento");
-                while ($m = $met->fetch_assoc()) {
-                    echo "<option value='{$m['idtipo_pagamento']}'>{$m['tipo_pagamento']}</option>";
-                }
-                ?>
-            </select>
+        <label>Cidade/Distrito:</label><br>
+        <select name="idcidade" id="idcidade" required>
+            <option value="">Selecione a província primeiro</option>
+        </select><br>
 
-          <div id="formulario-1" class="metodo-formulario">
-    <h4>🅿 Pagar com PayPal</h4>
-    <div id="paypal-button-container"></div>
+        <h3>Forma de Pagamento</h3>
+        <select name="metodo" id="metodo" onchange="mostrarFormularioPagamento()" required>
+            <option value="">Escolha como pagar</option>
+            <?php
+            $met = $conexao->query("SELECT * FROM tipo_pagamento");
+            while ($m = $met->fetch_assoc()) {
+                echo "<option value='{$m['idtipo_pagamento']}'>{$m['tipo_pagamento']}</option>";
+            }
+            ?>
+        </select>
+
+        <div id="formulario-1" class="metodo-formulario">
+            <h4>🅿 Pagar com PayPal</h4>
+            <div id="paypal-button-container"></div>
+        </div>
+
+        <div id="formulario-2" class="metodo-formulario">
+            <h4>📱 M-Pesa (Simulação)</h4>
+            <p>O sistema simulará o envio do STK Push.</p>
+            <input type="text" placeholder="Número M-Pesa">
+        </div>
+
+        <div id="formulario-5" class="metodo-formulario">
+            <h4>🅿 PayPal (Simulação)</h4>
+            <p>Integração via API removida. Clique abaixo para simular o sucesso.</p>
+        </div>
+
+        <br>
+        <button class="btn-finalizar" type="submit">CONFIRMAR E PAGAR</button>
+    </form>
 </div>
 
-            <div id="formulario-2" class="metodo-formulario">
-                <h4>📱 M-Pesa (Simulação)</h4>
-                <p>O sistema simulará o envio do STK Push.</p>
-                <input type="text" placeholder="Número M-Pesa">
-            </div>
+<script>
+    function carregarCidades() {
+        const idprov = document.getElementById("idprovincia").value;
+        if (!idprov) return;
+        fetch("?ajax=cidades&provincia=" + idprov)
+            .then(res => res.text())
+            .then(html => document.getElementById("idcidade").innerHTML = html);
+    }
 
-            <div id="formulario-5" class="metodo-formulario">
-                <h4>🅿 PayPal (Simulação)</h4>
-                <p>Integração via API removida. Clique abaixo para simular o sucesso.</p>
-            </div>
+    function mostrarFormularioPagamento() {
+        const metodo = document.getElementById("metodo").value;
+        document.querySelectorAll('.metodo-formulario').forEach(div => div.style.display = 'none');
+        const alvo = document.getElementById("formulario-" + metodo);
+        if (alvo) alvo.style.display = 'block';
 
-            <br>
-            <button class="btn-finalizar" type="submit">CONFIRMAR E PAGAR</button>
-        </form>
-    </div>
+        document.querySelector('.btn-finalizar').style.display = (metodo == '1') ? 'none' : 'block';
 
-    <script>
-             function carregarCidades() {
-            const idprov = document.getElementById("idprovincia").value;
-            if(!idprov) return;
-            fetch("?ajax=cidades&provincia=" + idprov)
-                .then(res => res.text())
-                .then(html => document.getElementById("idcidade").innerHTML = html);
-        }
+        if (metodo == '1') inicializarPayPal();
+    }
 
-// Só inicializa o botão PayPal quando o método for seleccionado
-function mostrarFormularioPagamento() {
-    const metodo = document.getElementById("metodo").value;
-    document.querySelectorAll('.metodo-formulario').forEach(div => div.style.display = 'none');
-    const alvo = document.getElementById("formulario-" + metodo);
-    if (alvo) alvo.style.display = 'block';
+    function inicializarPayPal() {
+        document.getElementById('paypal-button-container').innerHTML = '';
 
-    // Esconde o botão submit quando é PayPal
-    document.querySelector('.btn-finalizar').style.display = (metodo == '1') ? 'none' : 'block';
+        paypal.Buttons({
+            createOrder: function(data, actions) {
+                const form = document.querySelector('form');
+                const formData = new FormData(form);
+                formData.append('apenas_criar_pedido', '1');
 
-    if (metodo == '1') inicializarPayPal();
-}
-
-function inicializarPayPal() {
-    document.getElementById('paypal-button-container').innerHTML = '';
-
-    paypal.Buttons({
-        createOrder: function(data, actions) {
-            // 1. Primeiro submete os dados de entrega via AJAX
-            const form = document.querySelector('form');
-            const formData = new FormData(form);
-            formData.append('apenas_criar_pedido', '1'); // flag para o PHP só criar o pedido
-
-            return fetch('finalizar_pedido.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(pedidoData => {
-                if (pedidoData.error) throw new Error(pedidoData.error);
-                // 2. Depois cria a ordem PayPal
-                return fetch('paypal/create-order.php', {
+                return fetch('finalizar_pedido.php', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_pedido: pedidoData.id_pedido })
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(pedidoData => {
+                    if (pedidoData.error) throw new Error(pedidoData.error);
+                    return fetch('paypal/create-order.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id_pedido: pedidoData.id_pedido })
+                    });
+                })
+                .then(res => res.json())
+                .then(orderData => {
+                    if (orderData.error) throw new Error(orderData.error);
+                    return orderData.id;
                 });
-            })
-            .then(res => res.json())
-            .then(orderData => {
-                if (orderData.error) throw new Error(orderData.error);
-                return orderData.id; // PayPal order ID
-            });
-        },
-        onApprove: function(data, actions) {
-            // PayPal vai redirecionar automaticamente para capture-order.php
-            // porque definimos return_url no servidor
-            window.location.href = 'paypal/capture-order.php?token=' + data.orderID;
-        },
-        onError: function(err) {
-            alert('Erro no pagamento PayPal. Por favor tenta novamente.');
-            console.error(err);
-        },
-        onCancel: function() {
-            alert('Pagamento cancelado.');
-        }
-    }).render('#paypal-button-container');
-}
+            },
+            onApprove: function(data, actions) {
+                window.location.href = 'paypal/capture-order.php?token=' + data.orderID;
+            },
+            onError: function(err) {
+                alert('Erro no pagamento PayPal. Por favor tenta novamente.');
+                console.error(err);
+            },
+            onCancel: function() {
+                alert('Pagamento cancelado.');
+            }
+        }).render('#paypal-button-container');
+    }
 </script>
 
-    
 </body>
-
 </html>
