@@ -797,20 +797,72 @@ footer {
 }
 
 /* ── Filtro de produtos ───────────────────────────────────── */
-.filtro-produtos {
-  position: sticky;
-  top: var(--header-altura);
-  background: rgba(244,246,251,.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  padding: 14px 20px;
-  box-shadow: 0 4px 16px rgba(0,0,0,.06);
-  z-index: 90;
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  border-bottom: 1px solid var(--cor-cinza-mid);
+/* Wrapper do botão + painel */
+.filtro-wrapper {
+  padding: 12px 24px 0;
 }
+
+/* Botão de toggle */
+.filtro-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid var(--cor-cinza-mid, #ddd);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.9em;
+  font-weight: 600;
+  cursor: pointer;
+  color: #333;
+  transition: box-shadow 0.2s;
+}
+.filtro-toggle:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.filtro-chevron { font-size: 0.8em; }
+
+/* Painel colapsável */
+.filtro-produtos {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease, padding 0.35s ease;
+  background: #fff;
+  border: 1px solid var(--cor-cinza-mid, #ddd);
+  border-radius: 10px;
+  margin-top: 8px;
+  /* SEM position sticky — não ofusca os cards */
+}
+.filtro-produtos.aberto {
+  max-height: 200px;
+  padding: 16px;
+}
+
+/* Linha de inputs dentro do painel */
+.filtro-form .filtro-linha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.filtro-form input,
+.filtro-form select {
+  flex: 1 1 140px;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.88em;
+  min-width: 0;
+}
+.filtro-form .busca {
+  padding: 8px 20px;
+  background: var(--cor-destaque, #f90);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.filtro-form .busca:hover { opacity: 0.88; }
 
 /* ── Botões globais ───────────────────────────────────────── */
 button,

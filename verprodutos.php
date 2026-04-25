@@ -184,33 +184,40 @@ if ($usuario) {
     <h2 style="padding: 0 24px 20px;">Produtos Disponíveis</h2>
 
     <!-- Filtros -->
-    <div class="filtro-produtos">
-        <form method="get">
-            <input type="text" name="nome" placeholder="Nome do produto" value="<?= htmlspecialchars($nome) ?>">
-            <input type="number" step="0.01" name="preco_min" placeholder="Preço mín." value="<?= $preco_min ?>">
-            <input type="number" step="0.01" name="preco_max" placeholder="Preço máx." value="<?= $preco_max ?>">
+   <div class="filtro-wrapper">
+    <button class="filtro-toggle" onclick="toggleFiltros()" id="btnFiltro">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        Filtros
+        <span class="filtro-chevron" id="filtroChevron">▾</span>
+    </button>
 
-            <select name="categoria" id="categoria" onchange="atualizarMarcas()">
-                <option value="">Todas as categorias</option>
-                <?php while ($c = $categorias->fetch_assoc()): ?>
-                    <option value="<?= $c['id_categoria'] ?>" <?= $c['id_categoria'] == $id_categoria ? 'selected' : '' ?>>
-                        <?= $c['nome_categoria'] ?>
-                    </option>
-                <?php endwhile; ?>
-            </select>
-
-            <select name="marca">
-                <option value="">Todas as marcas</option>
-                <?php while ($m = $marcas->fetch_assoc()): ?>
-                    <option value="<?= $m['id_marca'] ?>" <?= $m['id_marca'] == $id_marca ? 'selected' : '' ?>>
-                        <?= $m['nome_marca'] ?>
-                    </option>
-                <?php endwhile; ?>
-            </select>
-
-            <input class="busca" type="submit" value="Filtrar">
+    <div class="filtro-produtos" id="painelFiltros">
+        <form method="get" class="filtro-form">
+            <div class="filtro-linha">
+                <input type="text" name="nome" placeholder="Nome do produto" value="<?= htmlspecialchars($nome) ?>">
+                <input type="number" step="0.01" name="preco_min" placeholder="Preço mín." value="<?= $preco_min ?>">
+                <input type="number" step="0.01" name="preco_max" placeholder="Preço máx." value="<?= $preco_max ?>">
+                <select name="categoria" id="categoria" onchange="atualizarMarcas()">
+                    <option value="">Todas as categorias</option>
+                    <?php while ($c = $categorias->fetch_assoc()): ?>
+                        <option value="<?= $c['id_categoria'] ?>" <?= $c['id_categoria'] == $id_categoria ? 'selected' : '' ?>>
+                            <?= $c['nome_categoria'] ?>
+                        </option>
+                    <?php endwhile; ?>
+                </select>
+                <select name="marca">
+                    <option value="">Todas as marcas</option>
+                    <?php while ($m = $marcas->fetch_assoc()): ?>
+                        <option value="<?= $m['id_marca'] ?>" <?= $m['id_marca'] == $id_marca ? 'selected' : '' ?>>
+                            <?= $m['nome_marca'] ?>
+                        </option>
+                    <?php endwhile; ?>
+                </select>
+                <button type="submit" class="busca">Filtrar</button>
+            </div>
         </form>
     </div>
+</div>
 
     <!-- Produtos -->
     <div class="container-produtos">
@@ -233,5 +240,18 @@ if ($usuario) {
     </div>
 </div>
 
+<script>
+function toggleFiltros() {
+    const painel = document.getElementById('painelFiltros');
+    const chevron = document.getElementById('filtroChevron');
+    const aberto = painel.classList.toggle('aberto');
+    chevron.textContent = aberto ? '▴' : '▾';
+}
+
+// Abre automaticamente se há filtros activos
+<?php if (!empty($nome) || !empty($preco_min) || !empty($preco_max) || !empty($id_categoria) || !empty($id_marca)): ?>
+document.addEventListener('DOMContentLoaded', () => toggleFiltros());
+<?php endif; ?>
+</script>
 </body>
 </html>
