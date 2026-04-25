@@ -7,8 +7,6 @@ $basededados = getenv('DB_NAME') ?: "loja";
 $port     = getenv('DB_PORT') ?: "3306";
 
 // No Aiven, a conexão costuma exigir a porta explicitamente
-// APENAS PARA TESTE (Remova depois)
-echo "Tentando conectar ao Host: " . getenv('DB_HOST') . " na porta: " . getenv('DB_PORT');
 $conexao = new mysqli($host, $usuario, $password, $basededados, $port);
 
 // Verifica a conexão
