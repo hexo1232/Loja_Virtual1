@@ -179,7 +179,7 @@ background-color:  #024185ff;
 
             // Busca marcas associadas
             $id_categoria = $cat['id_categoria'];
-            $marcas = $conexao->prepare("SELECT m.nome_marca FROM Categoria_Marca cm JOIN Marca m ON cm.id_marca = m.id_marca WHERE cm.id_categoria = ?");
+            $marcas = $conexao->prepare("SELECT m.nome_marca FROM categoria_marca cm JOIN marca m ON cm.id_marca = m.id_marca WHERE cm.id_categoria = ?");
             $marcas->bind_param("i", $id_categoria);
             $marcas->execute();
             $res = $marcas->get_result();
