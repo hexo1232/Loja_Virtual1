@@ -803,6 +803,7 @@ footer {
 }
 
 /* Botão de toggle */
+
 .filtro-toggle {
   display: inline-flex;
   align-items: center;
@@ -816,8 +817,14 @@ footer {
   cursor: pointer;
   color: #333;
   transition: box-shadow 0.2s;
+  transform: none !important;   /* neutraliza o transform do button global */
+  box-shadow: none;
+  width: auto;                  /* evita que o button global force width:100% */
 }
-.filtro-toggle:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.filtro-toggle:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transform: none !important;
+}
 .filtro-chevron { font-size: 0.8em; }
 
 /* Painel colapsável */
