@@ -1,0 +1,29 @@
+# Dependências do Composer
+/vendor/
+composer.phar
+
+# Ficheiros de Upload (Geralmente não queremos imagens de teste no Git)
+/uploads/*
+!/uploads/.gitkeep
+
+# IDEs e Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema Operativo
+Thumbs.db
+.DS_Store
+
+# Ficheiros de Ambiente e Segredos
+.env
+config.php
+# (Embora não esteja na imagem, é boa prática se decidires usar um .env no futuro)
+
+# Logs e Cache
+*.log
+/cache/
+
+# Docker (Opcional: ignora se não quiseres subir o estado do container)
+.docker/

@@ -1,0 +1,8 @@
+{
+  "require": {
+    "dompdf/dompdf": "^2.0",
+    "cybersource/rest-client-php": "^0.0.43",
+    "paypal/paypal-checkout-sdk": "^1.0"
+    
+  }
+}
