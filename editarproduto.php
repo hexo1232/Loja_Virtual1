@@ -29,17 +29,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $houveAlteracao = $stmt->affected_rows > 0; // inicialização correcta
 
-    if (isset($_POST['imagem_principal'])) {
-        $conexao->query("UPDATE produto_imagem SET imagem_principal = 0 WHERE id_produto = $id_produto");
-        $img_principal = intval($_POST['imagem_principal']);
-        $conexao->query("UPDATE produto_imagem SET imagem_principal = 1 WHERE id_imagem = $img_principal");
-        $houveAlteracao = true;
-    }
+ if (isset($_POST['imagem_principal']) && intval($_POST['imagem_principal']) > 0) {
+    $conexao->query("UPDATE produto_imagem SET imagem_principal = 0 WHERE id_produto = $id_produto");
+    $img_principal = intval($_POST['imagem_principal']);
+    $conexao->query("UPDATE produto_imagem SET imagem_principal = 1 WHERE id_imagem = $img_principal AND id_produto = $id_produto");
+    $houveAlteracao = true;
+}
 
 foreach ($_FILES['imagens']['tmp_name'] as $index => $tmp_name) {
-    if (!empty($tmp_name)) {
-        
-        // CHAMADA PARA A CLOUDINARY
+    if ($_FILES['imagens']['error'][$index] === UPLOAD_ERR_OK && !empty($tmp_name)) {
         $url_imagem = enviarParaCloudinary($tmp_name);
 
         if ($url_imagem) {
@@ -56,7 +54,8 @@ foreach ($_FILES['imagens']['tmp_name'] as $index => $tmp_name) {
 }
 
     if ($houveAlteracao) {
-        $mensagem = "✅ Produto atualizado com sucesso!";
+      header("Location: gerenciarprodutos.php?msg=atualizado&tipo=success");
+exit;
     } elseif (!empty($_GET['imagemRemovida'])) {
         $mensagem = "🖼️ Imagem removida com sucesso!";
     } else {

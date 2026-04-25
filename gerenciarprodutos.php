@@ -170,6 +170,37 @@ margin-bottom:10px;}
        
     </sidebar>
 
+    <?php if (isset($_GET['msg'])): ?>
+    <div id="feedback-toast" style="
+        position: fixed; top: 20px; right: 20px; z-index: 9999;
+        background: <?= $_GET['tipo'] === 'success' ? '#28a745' : '#dc3545' ?>;
+        color: white; padding: 16px 24px; border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2); font-weight: bold;
+        font-family: 'Segoe UI', sans-serif; font-size: 0.95em;
+        animation: slideIn 0.4s ease;
+    ">
+        <?php
+        $msgs = [
+            'cadastrado' => '✅ Produto cadastrado com sucesso!',
+            'atualizado' => '✅ Produto atualizado com sucesso!',
+        ];
+        echo $msgs[$_GET['msg']] ?? '✅ Operação realizada com sucesso!';
+        ?>
+    </div>
+    <style>
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(60px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+    </style>
+    <script>
+        setTimeout(() => {
+            const t = document.getElementById('feedback-toast');
+            if (t) { t.style.transition = '0.5s'; t.style.opacity = '0'; setTimeout(() => t.remove(), 500); }
+        }, 3500);
+    </script>
+<?php endif; ?>
+
         <div class="conteudo">
             
 <h2>Produtos Cadastrados</h2>

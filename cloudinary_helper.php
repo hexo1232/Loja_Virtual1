@@ -1,33 +1,31 @@
 <?php
-function enviarParaCloudinary($file_path) {
-    // Lê as variáveis que você configurou no painel do Render
+function enviarParaCloudinary($file) {
     $cloudName = getenv('CLOUDINARY_CLOUD_NAME');
     $apiKey    = getenv('CLOUDINARY_API_KEY');
     $apiSecret = getenv('CLOUDINARY_API_SECRET');
 
     $timestamp = time();
-    // Gera a assinatura de segurança exigida pela Cloudinary
     $signature = sha1("timestamp=$timestamp" . $apiSecret);
-
     $url = "https://api.cloudinary.com/v1_1/$cloudName/image/upload";
 
+    // Garante que o ficheiro existe e tem conteúdo
+    if (!file_exists($file) || filesize($file) === 0) return false;
+
     $data = [
-        'file'      => new CURLFile($file_path),
+        'file'      => new CURLFile(realpath($file)),
         'api_key'   => $apiKey,
         'timestamp' => $timestamp,
-        'signature' => $signature
+        'signature' => $signature,
     ];
 
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-    
     $response = curl_exec($ch);
-    $result = json_decode($response, true);
     curl_close($ch);
 
-    // Retorna a URL segura da imagem ou false se falhar
+    $result = json_decode($response, true);
     return $result['secure_url'] ?? false;
 }
 ?>

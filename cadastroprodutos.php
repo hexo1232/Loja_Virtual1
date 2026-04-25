@@ -47,15 +47,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !isset($_POST['acao'])) {
         // Upload das imagens
         // Upload das imagens para Cloudinary
 if (isset($_FILES['imagens'])) {
-    foreach ($_FILES['imagens']['tmp_name'] as $index => $tmp_name) {
-        if (!empty($tmp_name)) {
-            
-            // CHAMADA PARA A CLOUDINARY
-            $url_imagem = enviarParaCloudinary($tmp_name);
+foreach ($_FILES['imagens']['tmp_name'] as $index => $tmp_name) {
+    if ($_FILES['imagens']['error'][$index] === UPLOAD_ERR_OK && !empty($tmp_name)) {
+        $url_imagem = enviarParaCloudinary($tmp_name);
 
             if ($url_imagem) {
                 $legenda = $_POST['legenda'][$index] ?? '';
-                $imagem_principal = (isset($_POST['imagem_principal']) && $_POST['imagem_principal'] == $index) ? 1 : 0;
+                $imagem_principal = ($index === 0) ? 1 : 0;
 
                 // Agora salvamos a URL da Cloudinary ($url_imagem) no banco de dados
                 $stmt_img = $conexao->prepare("INSERT INTO produto_imagem (id_produto, caminho_imagem, legenda, imagem_principal) VALUES (?, ?, ?, ?)");
@@ -65,7 +63,8 @@ if (isset($_FILES['imagens'])) {
         }
     }
 }
-        $mensagem = "<div style='color: green; text-align:center;'>Produto cadastrado com sucesso!</div>";
+        header("Location: gerenciarprodutos.php?msg=cadastrado&tipo=success");
+exit;
     }
 }
 ?>
