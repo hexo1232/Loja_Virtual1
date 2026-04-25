@@ -42,7 +42,9 @@ foreach ($_FILES['imagens']['tmp_name'] as $index => $tmp_name) {
 
         if ($url_imagem) {
             $legenda = $_POST['legenda'][$index] ?? '';
-            $imagem_principal = 0;
+        $check = $conexao->query("SELECT COUNT(*) as total FROM produto_imagem WHERE id_produto = $id_produto AND imagem_principal = 1");
+$temPrincipal = $check->fetch_assoc()['total'] > 0;
+$imagem_principal = (!$temPrincipal && $index === 0) ? 1 : 0;
 
             // Salvamos a URL permanente no banco
             $stmt_img = $conexao->prepare("INSERT INTO produto_imagem (id_produto, caminho_imagem, legenda, imagem_principal) VALUES (?, ?, ?, ?)");
