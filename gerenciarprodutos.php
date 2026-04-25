@@ -181,7 +181,7 @@ margin-bottom:10px;}
 
 <div class="produtos">
     <?php
-    $sql = "SELECT 
+$sql = "SELECT 
                 p.id_produto,
                 p.nome_produto,
                 p.preco,
@@ -191,9 +191,9 @@ margin-bottom:10px;}
                 f.nome_fornecedor,
                 pi.caminho_imagem
             FROM produto p
-            LEFT JOIN Categoria c ON p.id_categoria = c.id_categoria
-            LEFT JOIN Marca m ON p.id_marca = m.id_marca
-            LEFT JOIN Fornecedor f ON p.id_fornecedor = f.id_fornecedor
+            LEFT JOIN categoria c ON p.id_categoria = c.id_categoria
+            LEFT JOIN marca m ON p.id_marca = m.id_marca
+            LEFT JOIN fornecedor f ON p.id_fornecedor = f.id_fornecedor
             LEFT JOIN produto_imagem pi ON p.id_produto = pi.id_produto AND pi.imagem_principal = 1
             ORDER BY p.id_produto DESC";
 

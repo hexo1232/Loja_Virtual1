@@ -6,7 +6,7 @@ include "usuario_info.php";
 // Aceitar pedido
 if (isset($_GET['aceitar_pedido'])) {
     $id_pedido = intval($_GET['aceitar_pedido']);
-    $sql_update = "UPDATE Pedido SET status_pedido = 'aceite' WHERE id_pedido = ?";
+    $sql_update = "UPDATE pedido SET status_pedido = 'aceite' WHERE id_pedido = ?"; // Corrigido aqui
     $stmt = $conexao->prepare($sql_update);
     $stmt->bind_param("i", $id_pedido);
     $stmt->execute();
@@ -15,7 +15,7 @@ if (isset($_GET['aceitar_pedido'])) {
 // Recusar pedido
 if (isset($_GET['recusar_pedido'])) {
     $id_pedido = intval($_GET['recusar_pedido']);
-    $sql_update = "UPDATE Pedido SET status_pedido = 'recusado' WHERE id_pedido = ?";
+    $sql_update = "UPDATE pedido SET status_pedido = 'recusado' WHERE id_pedido = ?"; // Corrigido aqui
     $stmt = $conexao->prepare($sql_update);
     $stmt->bind_param("i", $id_pedido);
     $stmt->execute();
@@ -32,10 +32,10 @@ SELECT
     pr.nome_produto,
     ip.quantidade,
     ip.subtotal
-FROM Pedido p
+FROM pedido p
 JOIN usuario u ON p.id_usuário = u.id_usuário
-JOIN Item_Pedido ip ON p.id_pedido = ip.id_pedido
-JOIN Produto pr ON ip.id_produto = pr.id_produto
+JOIN item_pedido ip ON p.id_pedido = ip.id_pedido
+JOIN produto pr ON ip.id_produto = pr.id_produto
 ORDER BY p.data_pedido DESC
 ";
 

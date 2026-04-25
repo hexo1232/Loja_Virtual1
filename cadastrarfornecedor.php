@@ -1,5 +1,3 @@
-
-
 <?php
 include "conexao.php";
 require_once "require_login.php";
