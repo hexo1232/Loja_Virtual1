@@ -4,7 +4,7 @@ require_once "conexao.php";
 require_once "require_login.php";
 include "usuario_info.php";
 
-// Ajax para carregar cidades - Tabela: cidade
+// Ajax para carregar cidades
 if (isset($_GET['ajax']) && $_GET['ajax'] === 'cidades' && isset($_GET['provincia'])) {
     $idprovincia = intval($_GET['provincia']);
     $stmt = $conexao->prepare("SELECT idcidade, nome_cidade FROM cidade WHERE idprovíncia = ?");
@@ -24,8 +24,9 @@ if (!isset($_SESSION['usuario']['id_usuário'])) {
     exit;
 }
 
-// Carregar carrinho - Tabela: carrinho
 $id_usuario = $_SESSION['usuario']['id_usuário'];
+
+// Carregar carrinho
 $stmtCarrinho = $conexao->prepare("SELECT * FROM carrinho WHERE id_usuário = ? AND status = 'activo'");
 $stmtCarrinho->bind_param("i", $id_usuario);
 $stmtCarrinho->execute();
@@ -36,15 +37,17 @@ if ($resultCarrinho->num_rows == 0) {
     exit;
 }
 
-$carrinho = $resultCarrinho->fetch_assoc();
+$carrinho    = $resultCarrinho->fetch_assoc();
 $id_carrinho = $carrinho['id_carrinho'];
 
-// Carregar itens do carrinho - Tabelas: item_carrinho, produto, produto_imagem
-$stmtItens = $conexao->prepare("SELECT ic.*, p.nome_produto, p.preco, p.quantidade_estoque,
-                    (SELECT caminho_imagem FROM produto_imagem WHERE id_produto = p.id_produto AND imagem_principal = 1 LIMIT 1) AS imagem_principal
-             FROM item_carrinho ic
-             JOIN produto p ON ic.id_produto = p.id_produto
-             WHERE ic.id_carrinho = ?");
+// Carregar itens do carrinho
+$stmtItens = $conexao->prepare("
+    SELECT ic.*, p.nome_produto, p.preco, p.quantidade_estoque,
+           (SELECT caminho_imagem FROM produto_imagem WHERE id_produto = p.id_produto AND imagem_principal = 1 LIMIT 1) AS imagem_principal
+    FROM item_carrinho ic
+    JOIN produto p ON ic.id_produto = p.id_produto
+    WHERE ic.id_carrinho = ?
+");
 $stmtItens->bind_param("i", $id_carrinho);
 $stmtItens->execute();
 $resultItens = $stmtItens->get_result();
@@ -53,36 +56,55 @@ $total = 0;
 $itens = [];
 while ($item = $resultItens->fetch_assoc()) {
     $itens[] = $item;
-    $total += $item['subtotal'];
+    $total  += $item['subtotal'];
 }
 
-// Processar formulário (SIMULAÇÃO TOTAL)
+// ===== PROCESSAR POST =====
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $telefone = filter_var($_POST['telefone'], FILTER_SANITIZE_STRING);
-    $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
+
+    $telefone    = filter_var($_POST['telefone'], FILTER_SANITIZE_STRING);
+    $email       = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
     $idprovincia = filter_var($_POST['idprovincia'], FILTER_VALIDATE_INT);
-    $idcidade = filter_var($_POST['idcidade'], FILTER_VALIDATE_INT);
-    $metodo = filter_var($_POST['metodo'], FILTER_VALIDATE_INT);
+    $idcidade    = filter_var($_POST['idcidade'], FILTER_VALIDATE_INT);
+    $metodo      = filter_var($_POST['metodo'], FILTER_VALIDATE_INT);
 
     if (!$telefone || !$email || $idprovincia === false || $idcidade === false || $metodo === false) {
-        die("<p style='color:red;'>Dados inválidos fornecidos.</p>");
+        $erro = json_encode(['error' => 'Dados inválidos fornecidos.']);
+        if (isset($_POST['apenas_criar_pedido'])) {
+            header('Content-Type: application/json');
+            echo $erro;
+        } else {
+            die("<p style='color:red;'>Dados inválidos fornecidos.</p>");
+        }
+        exit;
     }
 
-    // 1. Criar pedido - Tabela: pedido
-    $stmtPedido = $conexao->prepare("INSERT INTO pedido (data_pedido, status_pedido, valor_total, telefone, email, idprovíncia, idcidade, idtipo_pagamento, id_usuário)
-                                     VALUES (NOW(), 'pendente', ?, ?, ?, ?, ?, ?, ?)");
+    // 1. Criar pedido
+    $stmtPedido = $conexao->prepare("
+        INSERT INTO pedido (data_pedido, status_pedido, valor_total, telefone, email, idprovíncia, idcidade, idtipo_pagamento, id_usuário)
+        VALUES (NOW(), 'pendente', ?, ?, ?, ?, ?, ?, ?)
+    ");
     $stmtPedido->bind_param("dssiiii", $total, $telefone, $email, $idprovincia, $idcidade, $metodo, $id_usuario);
 
     if (!$stmtPedido->execute()) {
-        die("Erro ao inserir pedido: " . $stmtPedido->error);
+        $erro = json_encode(['error' => 'Erro ao inserir pedido: ' . $stmtPedido->error]);
+        if (isset($_POST['apenas_criar_pedido'])) {
+            header('Content-Type: application/json');
+            echo $erro;
+        } else {
+            die("Erro ao inserir pedido: " . $stmtPedido->error);
+        }
+        exit;
     }
 
     $id_pedido = $stmtPedido->insert_id;
 
-    // 2. Transferir itens e baixar estoque - Tabelas: item_pedido, produto
+    // 2. Transferir itens e baixar estoque
     foreach ($itens as $item) {
-        $stmtItem = $conexao->prepare("INSERT INTO item_pedido (id_pedido, id_produto, quantidade, preco_unitario, subtotal)
-                                       VALUES (?, ?, ?, ?, ?)");
+        $stmtItem = $conexao->prepare("
+            INSERT INTO item_pedido (id_pedido, id_produto, quantidade, preco_unitario, subtotal)
+            VALUES (?, ?, ?, ?, ?)
+        ");
         $stmtItem->bind_param("iiidd", $id_pedido, $item['id_produto'], $item['quantidade'], $item['preco'], $item['subtotal']);
         $stmtItem->execute();
 
@@ -91,23 +113,38 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmtEstoque->execute();
     }
 
-    // 3. Finalizar carrinho - Tabelas: carrinho, item_carrinho
-    $conexao->prepare("UPDATE carrinho SET status = 'finalizado' WHERE id_carrinho = ?")->bind_param("i", $id_carrinho)->execute();
-    $conexao->prepare("DELETE FROM item_carrinho WHERE id_carrinho = ?")->bind_param("i", $id_carrinho)->execute();
+    // 3. Finalizar carrinho
+    $stmtFC = $conexao->prepare("UPDATE carrinho SET status = 'finalizado' WHERE id_carrinho = ?");
+    $stmtFC->bind_param("i", $id_carrinho);
+    $stmtFC->execute();
 
-    // 4. Registar pagamento como "pago" (Simulação) - Tabela: pagamento
+    $stmtDI = $conexao->prepare("DELETE FROM item_carrinho WHERE id_carrinho = ?");
+    $stmtDI->bind_param("i", $id_carrinho);
+    $stmtDI->execute();
+
+    // ===== BIFURCAÇÃO: PayPal (apenas cria pedido, devolve JSON) vs outros métodos =====
+    if (isset($_POST['apenas_criar_pedido'])) {
+        // Chamada AJAX do botão PayPal — não regista pagamento ainda (será feito no capture-order.php)
+        header('Content-Type: application/json');
+        echo json_encode(['id_pedido' => $id_pedido]);
+        exit;
+    }
+
+    // 4. Para outros métodos: registar pagamento imediatamente (simulação)
     $status_pagamento = 'pago';
-    $data_pagamento = date("Y-m-d H:i:s");
-    $stmtPagamento = $conexao->prepare("INSERT INTO pagamento (status_pagamento, data_pagamento, valor_pago, id_pedido, idtipo_pagamento)
-                                        VALUES (?, ?, ?, ?, ?)");
+    $data_pagamento   = date("Y-m-d H:i:s");
+    $stmtPagamento    = $conexao->prepare("
+        INSERT INTO pagamento (status_pagamento, data_pagamento, valor_pago, id_pedido, idtipo_pagamento)
+        VALUES (?, ?, ?, ?, ?)
+    ");
     $stmtPagamento->bind_param("ssdii", $status_pagamento, $data_pagamento, $total, $id_pedido, $metodo);
     $stmtPagamento->execute();
 
-    // Exibir confirmação visual
+    // Confirmação visual para métodos não-PayPal
     echo "<div id='popup-confirmacao' class='popup'>
         <div class='popup-content'>
-            <h3 style='color: green;'>✔ Pedido Simulado com Sucesso!</h3>
-            <p>Os dados foram gravados no banco de dados (tabelas pedido e pagamento).</p>
+            <h3 style='color: green;'>✔ Pedido Confirmado!</h3>
+            <p>Os dados foram gravados com sucesso.</p>
             <div class='popup-buttons'>
                 <button onclick=\"window.location.href='verprodutos.php'\">Voltar à Loja</button>
                 <button onclick=\"window.location.href='historico_compras.php'\">Meu Histórico</button>
@@ -140,22 +177,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         .btn-finalizar { background: #28a745; color: white; padding: 15px 40px; border: none; border-radius: 5px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; }
         .btn-finalizar:hover { background: #218838; }
     </style>
-    <script>
-        function carregarCidades() {
-            const idprov = document.getElementById("idprovincia").value;
-            if(!idprov) return;
-            fetch("?ajax=cidades&provincia=" + idprov)
-                .then(res => res.text())
-                .then(html => document.getElementById("idcidade").innerHTML = html);
-        }
 
-        function mostrarFormularioPagamento() {
-            const metodo = document.getElementById("metodo").value;
-            document.querySelectorAll('.metodo-formulario').forEach(div => div.style.display = 'none');
-            const alvo = document.getElementById("formulario-" + metodo);
-            if (alvo) alvo.style.display = 'block';
-        }
-    </script>
+  <script src="https://www.paypal.com/sdk/js?client-id=<?= htmlspecialchars(getenv('PAYPAL_CLIENT_ID')) ?>&currency=USD"></script>
 </head>
 <body>
     <div class="sidebar">
@@ -216,11 +239,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 ?>
             </select>
 
-            <div id="formulario-1" class="metodo-formulario">
-                <h4>💳 Cartão VISA (Simulação)</h4>
-                <p>Insira dados fictícios para testar:</p>
-                <input type="text" placeholder="Número do Cartão">
-            </div>
+          <div id="formulario-1" class="metodo-formulario">
+    <h4>🅿 Pagar com PayPal</h4>
+    <div id="paypal-button-container"></div>
+</div>
 
             <div id="formulario-2" class="metodo-formulario">
                 <h4>📱 M-Pesa (Simulação)</h4>
@@ -237,5 +259,75 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <button class="btn-finalizar" type="submit">CONFIRMAR E PAGAR</button>
         </form>
     </div>
+
+    <script>
+             function carregarCidades() {
+            const idprov = document.getElementById("idprovincia").value;
+            if(!idprov) return;
+            fetch("?ajax=cidades&provincia=" + idprov)
+                .then(res => res.text())
+                .then(html => document.getElementById("idcidade").innerHTML = html);
+        }
+
+// Só inicializa o botão PayPal quando o método for seleccionado
+function mostrarFormularioPagamento() {
+    const metodo = document.getElementById("metodo").value;
+    document.querySelectorAll('.metodo-formulario').forEach(div => div.style.display = 'none');
+    const alvo = document.getElementById("formulario-" + metodo);
+    if (alvo) alvo.style.display = 'block';
+
+    if (metodo == '1') { // 1 = PayPal na tua BD
+        inicializarPayPal();
+    }
+}
+
+function inicializarPayPal() {
+    document.getElementById('paypal-button-container').innerHTML = '';
+
+    paypal.Buttons({
+        createOrder: function(data, actions) {
+            // 1. Primeiro submete os dados de entrega via AJAX
+            const form = document.querySelector('form');
+            const formData = new FormData(form);
+            formData.append('apenas_criar_pedido', '1'); // flag para o PHP só criar o pedido
+
+            return fetch('finalizar_pedido.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(pedidoData => {
+                if (pedidoData.error) throw new Error(pedidoData.error);
+                // 2. Depois cria a ordem PayPal
+                return fetch('paypal/create-order.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id_pedido: pedidoData.id_pedido })
+                });
+            })
+            .then(res => res.json())
+            .then(orderData => {
+                if (orderData.error) throw new Error(orderData.error);
+                return orderData.id; // PayPal order ID
+            });
+        },
+        onApprove: function(data, actions) {
+            // PayPal vai redirecionar automaticamente para capture-order.php
+            // porque definimos return_url no servidor
+            window.location.href = 'paypal/capture-order.php?token=' + data.orderID;
+        },
+        onError: function(err) {
+            alert('Erro no pagamento PayPal. Por favor tenta novamente.');
+            console.error(err);
+        },
+        onCancel: function() {
+            alert('Pagamento cancelado.');
+        }
+    }).render('#paypal-button-container');
+}
+</script>
+
+    
 </body>
+
 </html>
