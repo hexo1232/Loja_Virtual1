@@ -106,90 +106,213 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <title>Login</title>
       <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-            padding: 20px;
-        }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        h2 {
-            text-align: center;
-            color: #333;
-        }
+body {
+  font-family: 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a2a3a 0%, #2c3e50 60%, #1a4a6a 100%);
+  padding: 40px 20px;
+}
 
-        form {
-            max-width: 500px;
-            margin: auto;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px #ccc;
-        }
+.login-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 48px rgba(0,0,0,.2);
+  animation: fadeUp .6s ease both;
+}
 
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
-        input, select {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-            border: 1px solid #aaa;
-        }
+.login-logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: #2c3e50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
 
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #0066cc;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-        }
+.login-title {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a2a3a;
+  margin-bottom: 6px;
+}
 
-        button:hover {
-            background-color: #004a99;
-        }
+.login-sub {
+  text-align: center;
+  font-size: 13px;
+  color: #777;
+  margin-bottom: 28px;
+}
 
-        .mensagem {
-            max-width: 500px;
-            margin: 20px auto;
-            padding: 15px;
-            border-radius: 8px;
-            font-weight: bold;
-        }
+.field { margin-bottom: 16px; }
 
-        .mensagem.success {
-            background-color: #d4edda;
-            color: #155724;
-        }
+.field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 6px;
+}
 
-        .mensagem.error {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
+.field-wrap { position: relative; }
+
+.field-wrap .icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #aaa;
+  font-size: 15px;
+  pointer-events: none;
+}
+
+.field input {
+  width: 100%;
+  padding: 10px 12px 10px 38px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #f9f9f9;
+  color: #333;
+  transition: border-color .2s, box-shadow .2s;
+  outline: none;
+}
+
+.field input:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52,152,219,.15);
+  background: #fff;
+}
+
+.btn-login {
+  width: 100%;
+  padding: 12px;
+  background: #2c3e50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s, transform .15s;
+  margin-top: 4px;
+}
+
+.btn-login:hover {
+  background: #3d5166;
+  transform: translateY(-1px);
+}
+
+.btn-login:active { transform: scale(.98); }
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0;
+  color: #bbb;
+  font-size: 12px;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #eee;
+}
+
+.cadastro-link {
+  text-align: center;
+  font-size: 13px;
+  color: #777;
+}
+
+.cadastro-link a {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.cadastro-link a:hover { text-decoration: underline; }
+
+.mensagem {
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.mensagem.error {
+  background: #fdf0f0;
+  color: #a94442;
+  border: 1px solid #f5c6cb;
+}
+
+@media (max-width: 480px) {
+  .login-card { padding: 30px 20px; }
+}
 </style>
 </head>
 <body>
     
   
 
-<form method="POST" action="login.php<?= isset($_GET['redir']) ? '?redir=' . urlencode($_GET['redir']) : '' ?>">
-    <label>Usuário:</label>
-    <input type="text" name="entrada" placeholder="nome, email ou número" required><br>
+<div class="login-card">
+  <div class="login-logo">
+    <!-- ícone simples ou logo da loja -->
+    <svg width="28" height="28" fill="white" viewBox="0 0 24 24">
+      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22" fill="none" stroke="white" stroke-width="1.5"/>
+    </svg>
+  </div>
 
-    <label>Senha:</label>
-    <input type="password" name="senha" required><br>
+  <p class="login-title">Bem-vindo de volta</p>
+  <p class="login-sub">Acesse a sua conta para continuar</p>
 
-    <button type="submit">Entrar</button>
-    <label style="margin-left:30%;">Não tem conta? <a href="cadastro.php"> Clique aqui</a></label>
-    
-    <?php if (!empty($erro)) { echo "<p style='color:red; margin-left:30%;'>$erro</p>"; } ?>
-</form>
+  <?php if (!empty($erro)): ?>
+    <div class="mensagem error"><?= htmlspecialchars($erro) ?></div>
+  <?php endif; ?>
+
+  <form method="POST" action="login.php<?= isset($_GET['redir']) ? '?redir='.urlencode($_GET['redir']) : '' ?>">
+    <div class="field">
+      <label>Utilizador</label>
+      <div class="field-wrap">
+        <span class="icon">&#128100;</span>
+        <input type="text" name="entrada" placeholder="nome, email ou número" required>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Senha</label>
+      <div class="field-wrap">
+        <span class="icon">&#128274;</span>
+        <input type="password" name="senha" placeholder="••••••••" required>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-login">Entrar</button>
+  </form>
+
+  <div class="divider">ou</div>
+  <p class="cadastro-link">Não tem conta? <a href="cadastro.php">Criar conta</a></p>
+</div>
 
 
 
