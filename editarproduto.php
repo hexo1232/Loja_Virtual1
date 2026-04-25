@@ -35,22 +35,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $houveAlteracao = true;
     }
 
-    foreach ($_FILES['imagens']['tmp_name'] as $index => $tmp_name) {
-        if (!empty($tmp_name)) {
-            $nome_arquivo = basename($_FILES['imagens']['name'][$index]);
-            $destino      = "uploads/" . time() . "_" . $nome_arquivo;
+foreach ($_FILES['imagens']['tmp_name'] as $index => $tmp_name) {
+    if (!empty($tmp_name)) {
+        
+        // CHAMADA PARA A CLOUDINARY
+        $url_imagem = enviarParaCloudinary($tmp_name);
 
-            if (move_uploaded_file($tmp_name, $destino)) {
-                $legenda          = $_POST['legenda'][$index] ?? '';
-                $imagem_principal = 0;
+        if ($url_imagem) {
+            $legenda = $_POST['legenda'][$index] ?? '';
+            $imagem_principal = 0;
 
-                $stmt_img = $conexao->prepare("INSERT INTO produto_imagem (id_produto, caminho_imagem, legenda, imagem_principal) VALUES (?, ?, ?, ?)");
-                $stmt_img->bind_param("issi", $id_produto, $destino, $legenda, $imagem_principal);
-                $stmt_img->execute();
-                $houveAlteracao = true;
-            }
+            // Salvamos a URL permanente no banco
+            $stmt_img = $conexao->prepare("INSERT INTO produto_imagem (id_produto, caminho_imagem, legenda, imagem_principal) VALUES (?, ?, ?, ?)");
+            $stmt_img->bind_param("issi", $id_produto, $url_imagem, $legenda, $imagem_principal);
+            $stmt_img->execute();
+            $houveAlteracao = true;
         }
     }
+}
 
     if ($houveAlteracao) {
         $mensagem = "✅ Produto atualizado com sucesso!";

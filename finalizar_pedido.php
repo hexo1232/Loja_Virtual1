@@ -264,7 +264,7 @@ if ($usuario) {
 
     <?php foreach ($itens as $item): ?>
         <div class="card">
-            <img src="<?= htmlspecialchars($item['imagem_principal'] ?? 'imagens/sem_imagem.jpg') ?>">
+         <img src="<?= !empty($item['imagem_principal']) ? $item['imagem_principal'] : 'imagens/sem_foto.png' ?>" alt="Produto">
             <div>
                 <strong><?= htmlspecialchars($item['nome_produto']) ?></strong><br>
                 <small>Qtd: <?= $item['quantidade'] ?> | Subtotal: <?= number_format($item['subtotal'], 2) ?> MZN</small>

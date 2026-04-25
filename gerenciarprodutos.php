@@ -201,7 +201,7 @@ $sql = "SELECT
 
     if ($resultado->num_rows > 0) {
         while ($produto = $resultado->fetch_assoc()) {
-            $imagem = $produto['caminho_imagem'] ?: 'uploads/sem_imagem.png'; // imagem padrão
+         $imagem = $produto['caminho_imagem'] ?: 'https://placehold.co/600x400?text=Sem+Imagem'; // imagem padrão
             echo "<div class='card'>
                     <img src='{$imagem}' alt='Imagem do Produto'>
                     <div class='info'>

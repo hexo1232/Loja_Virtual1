@@ -253,7 +253,10 @@ if ($usuario) {
         <?php foreach ($itens_carrinho as $i => $item): ?>
               <div class="card">
       
-                <img src="<?= $item['imagem_principal'] ?? 'sem_foto.png' ?>" onclick="window.location='detalhesproduto.php?id=<?= $item['id_produto'] ?>'">
+                <img src="<?= !empty($item['imagem_principal']) ? $item['imagem_principal'] : 'imagens/sem_foto.png' ?>" 
+     onclick="window.location='detalhesproduto.php?id=<?= $item['id_produto'] ?>'" 
+     alt="Imagem do produto">
+     
                 <div class="info">
                     <h3><?= htmlspecialchars($item['nome_produto']) ?></h3>
                     <p>Preço: <?= number_format($item['preco'], 2, ',', '.') ?> MZN</p>

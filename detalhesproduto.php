@@ -211,9 +211,9 @@ if ($usuario) {
 <h2><?= htmlspecialchars($produto['nome_produto']) ?></h2>
 <div class="produto">
     <div>
-        <div class="imagem-principal">
-            <img id="img-principal" src="<?= $principal ? $principal['caminho_imagem'] : 'sem_foto.png' ?>" alt="Imagem principal">
-        </div>
+      <div class="imagem-principal">
+    <img id="img-principal" src="<?= $principal ? $principal['caminho_imagem'] : 'https://placehold.co/600x600?text=Sem+Foto' ?>" alt="Imagem principal">
+</div>
         <?php if (count($galeria) > 0): ?>
             <div class="galeria">
                 <?php foreach ($galeria as $img): ?>

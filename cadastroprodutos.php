@@ -44,23 +44,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && !isset($_POST['acao'])) {
         if (!is_dir('uploads')) { mkdir('uploads', 0777, true); }
 
         // Upload das imagens
-        if (isset($_FILES['imagens'])) {
-            foreach ($_FILES['imagens']['tmp_name'] as $index => $tmp_name) {
-                if (!empty($tmp_name)) {
-                    $nome_arquivo = basename($_FILES['imagens']['name'][$index]);
-                    $destino = "uploads/" . time() . "_" . $nome_arquivo;
+        // Upload das imagens para Cloudinary
+if (isset($_FILES['imagens'])) {
+    foreach ($_FILES['imagens']['tmp_name'] as $index => $tmp_name) {
+        if (!empty($tmp_name)) {
+            
+            // CHAMADA PARA A CLOUDINARY
+            $url_imagem = enviarParaCloudinary($tmp_name);
 
-                    if (move_uploaded_file($tmp_name, $destino)) {
-                        $legenda = $_POST['legenda'][$index] ?? '';
-                        $imagem_principal = (isset($_POST['imagem_principal']) && $_POST['imagem_principal'] == $index) ? 1 : 0;
+            if ($url_imagem) {
+                $legenda = $_POST['legenda'][$index] ?? '';
+                $imagem_principal = (isset($_POST['imagem_principal']) && $_POST['imagem_principal'] == $index) ? 1 : 0;
 
-                        $stmt_img = $conexao->prepare("INSERT INTO produto_imagem (id_produto, caminho_imagem, legenda, imagem_principal) VALUES (?, ?, ?, ?)");
-                        $stmt_img->bind_param("issi", $id_produto, $destino, $legenda, $imagem_principal);
-                        $stmt_img->execute();
-                    }
-                }
+                // Agora salvamos a URL da Cloudinary ($url_imagem) no banco de dados
+                $stmt_img = $conexao->prepare("INSERT INTO produto_imagem (id_produto, caminho_imagem, legenda, imagem_principal) VALUES (?, ?, ?, ?)");
+                $stmt_img->bind_param("issi", $id_produto, $url_imagem, $legenda, $imagem_principal);
+                $stmt_img->execute();
             }
         }
+    }
+}
         $mensagem = "<div style='color: green; text-align:center;'>Produto cadastrado com sucesso!</div>";
     }
 }

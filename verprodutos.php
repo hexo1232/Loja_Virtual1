@@ -209,12 +209,12 @@ if ($usuario) {
     <!-- Produtos -->
     <div class="container-produtos">
         <?php while ($p = $result->fetch_assoc()): ?>
-            <div class="card-produto">
-                <?php if ($p['imagem_principal']): ?>
-                    <img src="<?= htmlspecialchars($p['imagem_principal']) ?>" alt="Imagem do produto">
-                <?php else: ?>
-                    <img src="imagens/sem_imagem.jpg" alt="Sem imagem">
-                <?php endif; ?>
+          <div class="card-produto">
+    <?php if ($p['imagem_principal']): ?>
+        <img src="<?= htmlspecialchars($p['imagem_principal']) ?>" alt="Imagem do produto">
+    <?php else: ?>
+        <img src="https://placehold.co/600x400?text=Sem+Imagem" alt="Sem imagem">
+    <?php endif; ?>
                 <div class="info">
                     <div class="titulo"><?= htmlspecialchars($p['nome_produto']) ?></div>
                     <div class="preco"><?= number_format($p['preco'], 2, ',', '.') ?> MZN</div>

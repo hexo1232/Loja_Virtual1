@@ -1,31 +1,37 @@
 <?php
 include "conexao.php";
-require_once "require_login.php";
+require_once "require_login.php"; // Garante que o user está logado
 
 $id_usuario = $_SESSION['usuario']['id_usuário'];
-
-// Carregar dados atuais
-$stmt = $conexao->prepare("SELECT * FROM usuario WHERE id_usuário = ?");
-$stmt->bind_param("i", $id_usuario);
-$stmt->execute();
-$user_data = $stmt->get_result()->fetch_assoc();
+$erro = $sucesso = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nome = $_POST['nome'];
-    $apelido = $_POST['apelido'];
-    $telefone = $_POST['telefone'];
-    $provincia = $_POST['idprovincia'];
-    $cidade = $_POST['idcidade'];
+    $senha_atual = $_POST['senha_atual'];
+    $nova_senha = $_POST['nova_senha'];
+    $confirmar_senha = $_POST['confirmar_senha'];
 
-    $sql = "UPDATE usuario SET nome=?, apelido=?, telefone=?, idprovíncia=?, idcidade=? WHERE id_usuário=?";
-    $up = $conexao->prepare($sql);
-    $up->bind_param("sssiii", $nome, $apelido, $telefone, $provincia, $cidade, $id_usuario);
+    // 1. Buscar senha atual no banco
+    $stmt = $conexao->prepare("SELECT senha_hash FROM usuario WHERE id_usuário = ?");
+    $stmt->bind_param("i", $id_usuario);
+    $stmt->execute();
+    $res = $stmt->get_result()->fetch_assoc();
 
-    if ($up->execute()) {
-        session_destroy();
-        header("Location: login.php?msg=perfil_atualizado");
-        exit();
-    }
+    if (password_verify($senha_atual, $res['senha_hash'])) {
+        if ($nova_senha === $confirmar_senha) {
+            $nova_hash = password_hash($nova_senha, PASSWORD_DEFAULT);
+            
+            // 2. Atualizar
+            $up = $conexao->prepare("UPDATE usuario SET senha_hash = ? WHERE id_usuário = ?");
+            $up->bind_param("si", $nova_hash, $id_usuario);
+            
+            if ($up->execute()) {
+                // 3. Logout automático
+                session_destroy();
+                header("Location: login.php?msg=senha_alterada");
+                exit();
+            }
+        } else { $erro = "As novas senhas não coincidem."; }
+    } else { $erro = "Senha atual incorreta."; }
 }
 ?>
 
@@ -33,20 +39,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
-    <title>Editar Perfil</title>
+    <title>Alterar Senha</title>
     <link rel="stylesheet" href="css/cliente.css">
     <script src="js/hamburger.js" defer></script>
-    <script>
-        function carregarCidades() {
-            const idprov = document.getElementById("idprovincia").value;
-            fetch("finalizar_pedido.php?ajax=cidades&provincia=" + idprov)
-                .then(res => res.text())
-                .then(html => document.getElementById("idcidade").innerHTML = html);
-        }
-    </script>
 </head>
 <body>
- <?php
+<?php
 if ($usuario) {
     $nome2        = $usuario['nome']    ?? '';
     $apelido      = $usuario['apelido'] ?? '';
@@ -97,40 +95,24 @@ if ($usuario) {
     </nav>
 
 
-
 </aside>
 
     <div class="conteudo">
-        <h2>👤 Editar Meus Dados</h2>
-        
-        <div class="card" style="max-width: 500px; padding: 20px;">
+        <h2>🔒 Alterar Senha</h2>
+        <?php if($erro) echo "<p style='color:red'>$erro</p>"; ?>
+
+        <div class="card" style="max-width: 400px; padding: 20px;">
             <form method="post">
-                <label>Nome:</label>
-                <input type="text" name="nome" value="<?= $user_data['nome'] ?>" required style="width:100%"><br><br>
+                <label>Senha Atual:</label><br>
+                <input type="password" name="senha_atual" required style="width:100%"><br><br>
 
-                <label>Apelido:</label>
-                <input type="text" name="apelido" value="<?= $user_data['apelido'] ?>" required style="width:100%"><br><br>
+                <label>Nova Senha:</label><br>
+                <input type="password" name="nova_senha" required style="width:100%"><br><br>
 
-                <label>Telefone:</label>
-                <input type="text" name="telefone" value="<?= $user_data['telefone'] ?>" required style="width:100%"><br><br>
+                <label>Confirmar Nova Senha:</label><br>
+                <input type="password" name="confirmar_senha" required style="width:100%"><br><br>
 
-                <label>Província:</label>
-                <select name="idprovincia" id="idprovincia" onchange="carregarCidades()" style="width:100%">
-                    <?php
-                    $provs = $conexao->query("SELECT * FROM provincia");
-                    while($p = $provs->fetch_assoc()){
-                        $sel = ($p['idprovíncia'] == $user_data['idprovíncia']) ? "selected" : "";
-                        echo "<option value='{$p['idprovíncia']}' $sel>{$p['nome_província']}</option>";
-                    }
-                    ?>
-                </select><br><br>
-
-                <label>Cidade:</label>
-                <select name="idcidade" id="idcidade" style="width:100%">
-                    <option value="<?= $user_data['idcidade'] ?>">Manter atual</option>
-                </select><br><br>
-
-                <button type="submit" class="save" style="width:100%">Salvar Alterações e Sair</button>
+                <button type="submit" class="save" style="width:100%">Atualizar e Sair</button>
             </form>
         </div>
     </div>

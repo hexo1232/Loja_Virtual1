@@ -148,13 +148,10 @@ if ($usuario) {
         $result_itens = $stmt_itens->get_result();
 
         while ($item = $result_itens->fetch_assoc()):
-            $caminhoImagem = "uploads/sem_imagem.jpg";
-            if (!empty($item['caminho_imagem']) && file_exists("uploads/" . basename($item['caminho_imagem']))) {
-                $caminhoImagem = "uploads/" . basename($item['caminho_imagem']);
-            }
-        ?>
-        <div class="produto">
-            <img src="<?= htmlspecialchars($caminhoImagem) ?>" alt="Imagem do Produto">
+      $caminhoImagem = !empty($item['caminho_imagem']) ? $item['caminho_imagem'] : "imagens/sem_foto.png";
+?>
+<div class="produto">
+    <img src="<?= htmlspecialchars($caminhoImagem) ?>" alt="Imagem de <?= htmlspecialchars($item['nome_produto']) ?>">
             <div class="info">
                 <p><strong>Produto:</strong> <?= htmlspecialchars($item['nome_produto']) ?></p>
                 <p><strong>Quantidade:</strong> <?= $item['quantidade'] ?></p>
