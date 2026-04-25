@@ -165,26 +165,98 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <meta charset="UTF-8">
     <title>Finalizar Pedido (Simulação)</title>
     <link rel="stylesheet" href="css/cliente.css">
-    <style>
-        .card { border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 10px; display: flex; gap: 15px; background: #fff; width: 90%; max-width: 600px; }
-        .card img { width: 70px; height: 70px; object-fit: cover; border-radius: 5px; }
-        .sidebar { position: fixed; left: 0; top: 0; width: 180px; height: 100%; background: #f8f9fa; padding: 20px; border-right: 1px solid #ddd; }
-        .conteudo { margin-left: 230px; padding: 30px; }
-        .metodo-formulario { display: none; margin-top: 15px; padding: 15px; border-left: 4px solid #007bff; background: #f0f7ff; }
-        input, select { width: 100%; max-width: 400px; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; }
-        .btn-finalizar { background: #28a745; color: white; padding: 15px 40px; border: none; border-radius: 5px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; }
-        .btn-finalizar:hover { background: #218838; }
-    </style>
+      <script src="js/hamburger.js" defer></script>
 
   <script src="https://www.paypal.com/sdk/js?client-id=<?= htmlspecialchars(getenv('PAYPAL_CLIENT_ID')) ?>&currency=USD"></script>
 </head>
 <body>
-    <div class="sidebar">
-        <h3>Menu</h3>
-        <a href="verprodutos.php" style="text-decoration:none; color:#333;">🏠 Início</a><br><br>
-        <a href="carrinho.php" style="text-decoration:none; color:#333;">🛒 Carrinho</a><br><br>
-        <a href="logout.php" style="text-decoration:none; color:red;">🚪 Sair</a>
+    
+<?php
+if ($usuario) {
+    $nome2        = $usuario['nome']    ?? '';
+    $apelido      = $usuario['apelido'] ?? '';
+    $email        = $usuario['email']   ?? '';
+    $iniciais     = strtoupper(substr($nome2, 0, 1) . substr($apelido, 0, 1));
+    $nomeCompleto = trim("$nome2 $apelido");
+
+    function gerarCor($texto) {
+        $hash = md5($texto);
+        return 'rgb(' . hexdec(substr($hash,0,2)) . ',' . hexdec(substr($hash,2,2)) . ',' . hexdec(substr($hash,4,2)) . ')';
+    }
+    $corAvatar = gerarCor($nomeCompleto);
+}
+?>
+
+<!-- ── Botão hamburger ────────────────────────────────────── -->
+<button class="sidebar-toggle" id="sidebarToggle" aria-label="Abrir menu" aria-expanded="false">
+    <span class="hamburger-bar"></span>
+    <span class="hamburger-bar"></span>
+    <span class="hamburger-bar"></span>
+</button>
+
+<!-- ── Overlay mobile ────────────────────────────────────── -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ── Sidebar ───────────────────────────────────────────── -->
+<aside class="sidebar" id="sidebar">
+
+    <div class="sidebar-header">
+        <span class="sidebar-logo">&#9679; Loja</span>
     </div>
+
+    <nav class="sidebar-nav">
+        <a href="verprodutos.php" class="sidebar-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+            Início
+        </a>
+        <a href="carrinho.php" class="sidebar-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            Carrinho
+        </a>
+        <?php if ($usuario): ?>
+        <a href="historico_compras.php" class="sidebar-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Histórico de Compras
+        </a>
+        <?php endif; ?>
+    </nav>
+
+    <?php if ($usuario): ?>
+    <div class="sidebar-footer">
+        <button class="sidebar-user" id="sidebarUserBtn" aria-haspopup="true" aria-expanded="false">
+            <div class="sidebar-avatar" style="background-color: <?= $corAvatar ?>"><?= $iniciais ?></div>
+            <div class="sidebar-user-info">
+                <span class="sidebar-user-name"><?= htmlspecialchars($nomeCompleto) ?></span>
+                <?php if ($email): ?>
+                    <span class="sidebar-user-email"><?= htmlspecialchars($email) ?></span>
+                <?php endif; ?>
+            </div>
+            <svg class="sidebar-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="18 15 12 9 6 15"/>
+            </svg>
+        </button>
+        <div class="sidebar-dropdown" id="sidebarDropdown" role="menu">
+            <a href="alterar_senha.php" class="sidebar-dropdown-item" role="menuitem">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Alterar senha
+            </a>
+            <div class="sidebar-dropdown-divider"></div>
+            <a href="logout.php" class="sidebar-dropdown-item sidebar-dropdown-item--danger" role="menuitem">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Sair
+            </a>
+        </div>
+    </div>
+    <?php else: ?>
+    <div class="sidebar-footer">
+        <a href="login.php" class="sidebar-login-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            Fazer login
+        </a>
+    </div>
+    <?php endif; ?>
+
+</aside>
 
     <div class="conteudo">
         <h2>Resumo da Compra</h2>

@@ -254,8 +254,18 @@ footer {
   font-size: 13px;
   border-top: 1px solid rgba(255,255,255,.06);
 }
+/* ============================================================
+   cliente.css — TRECHOS NOVOS (adicionar ao arquivo existente)
+   Substitui / complementa as seções: sidebar, usuario-info, conteudo
+   ============================================================ */
 
-/* ── Sidebar ──────────────────────────────────────────────── */
+/* ── Variáveis adicionais ─────────────────────────────────── */
+:root {
+  --sidebar-largura: 230px;
+  --sidebar-collapsed: 0px;
+}
+
+/* ── Sidebar renovada ─────────────────────────────────────── */
 .sidebar {
   position: fixed;
   left: 0;
@@ -263,118 +273,368 @@ footer {
   width: var(--sidebar-largura);
   height: 100%;
   background: linear-gradient(180deg, var(--cor-primaria) 0%, #1e2f4d 100%);
-  padding: 80px 12px 24px;
+  display: flex;
+  flex-direction: column;
   box-shadow: var(--sombra-sidebar);
+  animation: fadeRight 0.65s cubic-bezier(0.4,0,0.2,1) both;
+  z-index: 300;
+  border-right: 1px solid rgba(255,255,255,.05);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* Cabeçalho da sidebar */
+.sidebar-header {
+  height: var(--header-altura, 64px);
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  flex-shrink: 0;
+}
+
+.sidebar-logo {
+  color: var(--cor-secundaria);
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: -0.3px;
+}
+
+/* Navegação */
+.sidebar-nav {
+  flex: 1;
+  padding: 14px 10px;
   display: flex;
   flex-direction: column;
   gap: 3px;
-  animation: fadeRight 0.65s cubic-bezier(0.4,0,0.2,1) both;
-  z-index: 100;
-  border-right: 1px solid rgba(255,255,255,.05);
+  overflow-y: auto;
 }
 
-/* Linha decorativa no topo da sidebar */
-.sidebar::before {
-  content: '';
-  position: absolute;
-  top: 64px;
-  left: 16px;
-  right: 16px;
-  height: 1px;
-  background: rgba(255,255,255,.08);
-}
-
-.sidebar a {
+.sidebar-link {
   text-decoration: none;
-  color: rgba(255,255,255,.65);
-  padding: 10px 14px;
-  border-radius: var(--raio-md);
+  color: rgba(255,255,255,.62);
+  padding: 10px 13px;
+  border-radius: var(--raio-md, 12px);
   font-size: 13.5px;
   font-weight: 500;
   transition: var(--transicao);
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   letter-spacing: 0.1px;
   position: relative;
   overflow: hidden;
 }
 
-.sidebar a::before {
+.sidebar-link svg {
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.sidebar-link::before {
   content: '';
   position: absolute;
   left: 0;
   top: 50%;
   transform: translateY(-50%) scaleY(0);
   width: 3px;
-  height: 60%;
+  height: 55%;
   background: var(--cor-secundaria);
   border-radius: 0 3px 3px 0;
-  transition: var(--transicao);
+  transition: transform 0.22s cubic-bezier(0.4,0,0.2,1);
 }
 
-.sidebar a:hover {
+.sidebar-link:hover {
   background: rgba(255,255,255,.09);
   color: var(--cor-branco);
   transform: translateX(3px);
 }
 
-.sidebar a:hover::before {
+.sidebar-link:hover svg { opacity: 1; }
+
+.sidebar-link:hover::before,
+.sidebar-link.ativo::before {
   transform: translateY(-50%) scaleY(1);
 }
 
-.sidebar a.ativo {
-  background: rgba(245,158,11,.15);
+.sidebar-link.ativo {
+  background: rgba(245,158,11,.14);
   color: var(--cor-secundaria);
   font-weight: 600;
 }
 
-.sidebar a.ativo::before {
-  transform: translateY(-50%) scaleY(1);
+.sidebar-link.ativo svg { opacity: 1; color: var(--cor-secundaria); }
+
+/* ── Rodapé da sidebar ────────────────────────────────────── */
+.sidebar-footer {
+  padding: 12px 10px;
+  border-top: 1px solid rgba(255,255,255,.07);
+  flex-shrink: 0;
+  position: relative;
 }
 
-/* ── Conteúdo principal ───────────────────────────────────── */
-.conteudo {
-  margin-left: var(--sidebar-largura);
-  animation: fadeIn 0.5s ease both;
-}
-
-/* ── Usuário Info ─────────────────────────────────────────── */
-.usuario-info {
+/* Botão do usuário */
+.sidebar-user {
+  width: 100%;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: var(--raio-md, 12px);
+  padding: 10px 12px;
   display: flex;
-  margin-left: 250px;
   align-items: center;
   gap: 10px;
-  padding: 10px;
+  cursor: pointer;
+  transition: var(--transicao);
+  color: rgba(255,255,255,.75);
+  text-align: left;
 }
 
-.usuario-iniciais {
+.sidebar-user:hover {
+  background: rgba(255,255,255,.1);
   color: var(--cor-branco);
-  width: 36px;
-  height: 36px;
+  border-color: rgba(255,255,255,.15);
+}
+
+.sidebar-user--ativo {
+  background: rgba(255,255,255,.1);
+  border-color: rgba(245,158,11,.35);
+}
+
+.sidebar-avatar {
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 12px;
-  background: linear-gradient(135deg, var(--cor-secundaria), var(--cor-secundaria-hover));
-  box-shadow: 0 2px 8px rgba(245,158,11,.4);
-  transition: var(--transicao-spring);
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
   letter-spacing: 0.5px;
 }
 
-.usuario-iniciais:hover {
-  transform: scale(1.12);
-  box-shadow: 0 4px 14px rgba(245,158,11,.5);
+.sidebar-user-info {
+  flex: 1;
+  min-width: 0;
 }
 
-.usuario-nome {
+.sidebar-user-name {
+  display: block;
+  font-size: 13px;
   font-weight: 600;
-  font-size: 14px;
   color: rgba(255,255,255,.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+.sidebar-user-email {
+  display: block;
+  font-size: 11px;
+  color: rgba(255,255,255,.42);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+.sidebar-chevron {
+  flex-shrink: 0;
+  opacity: 0.5;
+  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), opacity 0.2s;
+}
+
+.sidebar-user--ativo .sidebar-chevron {
+  transform: rotate(180deg);
+  opacity: 0.8;
+}
+
+/* ── Dropdown (abre para cima) ───────────────────────────── */
+.sidebar-dropdown {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 10px;
+  right: 10px;
+  background: #1c2e48;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: var(--raio-md, 12px);
+  box-shadow: 0 -8px 24px rgba(0,0,0,.35), 0 4px 12px rgba(0,0,0,.2);
+  padding: 6px;
+  opacity: 0;
+  transform: translateY(8px) scale(0.97);
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.34,1.56,0.64,1);
+  z-index: 10;
+}
+
+.sidebar-dropdown--visivel {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.sidebar-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 12px;
+  border-radius: var(--raio, 8px);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: rgba(255,255,255,.7);
+  text-decoration: none;
+  transition: background 0.18s, color 0.18s;
+  cursor: pointer;
+}
+
+.sidebar-dropdown-item svg { flex-shrink: 0; opacity: 0.7; }
+
+.sidebar-dropdown-item:hover {
+  background: rgba(255,255,255,.09);
+  color: var(--cor-branco);
+}
+
+.sidebar-dropdown-item:hover svg { opacity: 1; }
+
+.sidebar-dropdown-item--danger { color: rgba(239,68,68,.8); }
+.sidebar-dropdown-item--danger:hover {
+  background: rgba(239,68,68,.12);
+  color: #f87171;
+}
+
+.sidebar-dropdown-divider {
+  height: 1px;
+  background: rgba(255,255,255,.07);
+  margin: 4px 6px;
+}
+
+/* ── Botão login (não autenticado) ───────────────────────── */
+.sidebar-login-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 11px;
+  background: rgba(245,158,11,.15);
+  border: 1px solid rgba(245,158,11,.3);
+  border-radius: var(--raio-md, 12px);
+  color: var(--cor-secundaria);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--transicao);
+}
+
+.sidebar-login-btn:hover {
+  background: var(--cor-secundaria);
+  color: var(--cor-primaria);
+  border-color: transparent;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(245,158,11,.35);
+}
+
+/* ── Botão hamburger ──────────────────────────────────────── */
+.sidebar-toggle {
+  display: none; /* visível apenas no mobile — ver media query */
+  position: fixed;
+  top: 14px;
+  left: 16px;
+  z-index: 400;
+  width: 38px;
+  height: 38px;
+  background: var(--cor-primaria);
+  border: none;
+  border-radius: var(--raio, 8px);
+  cursor: pointer;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  box-shadow: var(--sombra-md);
+  transition: var(--transicao);
+  padding: 0;
+}
+
+.sidebar-toggle:hover {
+  background: var(--cor-primaria-claro, #243352);
+}
+
+.hamburger-bar {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: var(--cor-branco);
+  border-radius: 2px;
+  transition: transform 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.2s;
+  transform-origin: center;
+}
+
+/* Animação X quando ativo */
+.sidebar-toggle--ativo .hamburger-bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.sidebar-toggle--ativo .hamburger-bar:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+.sidebar-toggle--ativo .hamburger-bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* ── Overlay mobile ───────────────────────────────────────── */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10,20,45,.5);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  z-index: 290;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+/* ── Conteúdo principal (ajuste para a nova sidebar) ──────── */
+.conteudo {
+  margin-left: var(--sidebar-largura);
+}
+
+/* Remover bloco .usuario-info antigo — agora está dentro da sidebar */
+.usuario-info { display: none; }
+
+/* ── Responsivo ───────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    width: 240px;
+    /* sobrepõe o conteúdo em mobile */
+  }
+
+  .sidebar--aberta {
+    transform: translateX(0);
+  }
+
+  .sidebar-toggle {
+    display: flex;
+  }
+
+  .sidebar-overlay--visivel {
+    display: block;
+    opacity: 1;
+  }
+
+  .conteudo {
+    margin-left: 0;
+    padding-top: 12px;
+  }
+
+  header {
+    padding-left: 64px; /* espaço para o botão hamburger */
+  }
+}
 /* ── Cards de produto ─────────────────────────────────────── */
 .container-produtos {
   display: grid;

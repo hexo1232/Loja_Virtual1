@@ -66,107 +66,165 @@ $marcas = !empty($id_categoria) ?
     <title>Produtos</title>
     <link rel="stylesheet" href="css/cliente.css">
     <script src="js/cliente.js" defer></script>
-              
+    <script src="js/hamburger.js" defer></script>
+
     <?php if ($usuario): ?>
         <script src="logout_auto.js"></script>
     <?php endif; ?>
-    
-   
+
     <script>
         function atualizarMarcas() {
             var categoria = document.getElementById('categoria').value;
             window.location.href = 'verprodutos.php?categoria=' + categoria;
         }
     </script>
-  
 </head>
 <body>
-<?php if ($usuario): ?>
-    <?php 
-    $nome2 = $usuario['nome'] ?? '';
-    $apelido = $usuario['apelido'] ?? '';
-    $iniciais = strtoupper(substr($nome2, 0, 1) . substr($apelido, 0, 1));
-    $nomeCompleto = "$nome2 $apelido";
+
+<?php
+/* ── Dados do usuário para o avatar ──────────────────────── */
+if ($usuario) {
+    $nome2       = $usuario['nome']    ?? '';
+    $apelido     = $usuario['apelido'] ?? '';
+    $email       = $usuario['email']   ?? '';
+    $iniciais    = strtoupper(substr($nome2, 0, 1) . substr($apelido, 0, 1));
+    $nomeCompleto = trim("$nome2 $apelido");
+
     function gerarCor($texto) {
         $hash = md5($texto);
-        $r = hexdec(substr($hash, 0, 2));
-        $g = hexdec(substr($hash, 2, 2));
-        $b = hexdec(substr($hash, 4, 2));
-        return "rgb($r, $g, $b)";
+        return 'rgb(' . hexdec(substr($hash,0,2)) . ',' . hexdec(substr($hash,2,2)) . ',' . hexdec(substr($hash,4,2)) . ')';
     }
     $corAvatar = gerarCor($nomeCompleto);
-    ?>
-    <div class="usuario-info">
-        <div class="usuario-iniciais" style="background-color: <?= $corAvatar ?>"><?= $iniciais ?></div>
-        <div class="usuario-nome"><?= $nomeCompleto ?></div>
+}
+?>
+
+<!-- ── Botão hamburger ────────────────────────────────────── -->
+<button class="sidebar-toggle" id="sidebarToggle" aria-label="Abrir menu" aria-expanded="false">
+    <span class="hamburger-bar"></span>
+    <span class="hamburger-bar"></span>
+    <span class="hamburger-bar"></span>
+</button>
+
+<!-- ── Overlay mobile ────────────────────────────────────── -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- ── Sidebar ───────────────────────────────────────────── -->
+<aside class="sidebar" id="sidebar">
+
+    <div class="sidebar-header">
+        <span class="sidebar-logo">&#9679; Loja</span>
     </div>
-<?php else: ?>
-   <div style="padding: 15px; background: #fffae6; border: 1px solid #ffc107; margin: 15px; margin-left: 250px; border-radius: 5px;">
-    <strong>Não tem sessão iniciada?</strong>
-    <a href="login.php" style="color: #d35400; text-decoration: underline;">Faça login</a> para adicionar ao carrinho, favoritar produtos e ver histórico.
-</div>
 
-<?php endif; ?>
+    <nav class="sidebar-nav">
+        <a href="verprodutos.php" class="sidebar-link ativo">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+            Produtos
+        </a>
+        <a href="carrinho.php" class="sidebar-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            Ver carrinho
+        </a>
+        <?php if ($usuario): ?>
+        <a href="historico_compras.php" class="sidebar-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Histórico de Compras
+        </a>
+        <?php endif; ?>
+    </nav>
 
-<sidebar class="sidebar">
-    <a href="carrinho.php">Ver carrinho</a>
-    <a href="historico_compras.php">Ver Histórico de Compras</a>
-    <?php if ($usuario): ?><a href="logout.php">Sair</a><?php endif; ?>
-</sidebar>
+    <!-- Rodapé: logado -->
+    <?php if ($usuario): ?>
+    <div class="sidebar-footer">
+        <button class="sidebar-user" id="sidebarUserBtn" aria-haspopup="true" aria-expanded="false">
+            <div class="sidebar-avatar" style="background-color: <?= $corAvatar ?>"><?= $iniciais ?></div>
+            <div class="sidebar-user-info">
+                <span class="sidebar-user-name"><?= htmlspecialchars($nomeCompleto) ?></span>
+                <?php if ($email): ?>
+                    <span class="sidebar-user-email"><?= htmlspecialchars($email) ?></span>
+                <?php endif; ?>
+            </div>
+            <svg class="sidebar-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="18 15 12 9 6 15"/>
+            </svg>
+        </button>
 
+        <div class="sidebar-dropdown" id="sidebarDropdown" role="menu">
+            <a href="alterar_senha.php" class="sidebar-dropdown-item" role="menuitem">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Alterar senha
+            </a>
+            <div class="sidebar-dropdown-divider"></div>
+            <a href="logout.php" class="sidebar-dropdown-item sidebar-dropdown-item--danger" role="menuitem">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Sair
+            </a>
+        </div>
+    </div>
+
+    <!-- Rodapé: não logado -->
+    <?php else: ?>
+    <div class="sidebar-footer">
+        <a href="login.php" class="sidebar-login-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            Fazer login
+        </a>
+    </div>
+    <?php endif; ?>
+
+</aside>
+
+<!-- ── Conteúdo principal ─────────────────────────────────── -->
 <div class="conteudo">
-  <h2 style="padding:0 20px;">Produtos Disponíveis</h2>
+    <h2 style="padding: 0 24px 20px;">Produtos Disponíveis</h2>
 
-  <!-- Filtros -->
-  <div class="filtro-produtos">
-      <form method="get">
-          <input type="text" name="nome" placeholder="Nome do produto" value="<?= htmlspecialchars($nome) ?>">
-          <input type="number" step="0.01" name="preco_min" placeholder="Preço mín." value="<?= $preco_min ?>">
-          <input type="number" step="0.01" name="preco_max" placeholder="Preço máx." value="<?= $preco_max ?>">
+    <!-- Filtros -->
+    <div class="filtro-produtos">
+        <form method="get">
+            <input type="text" name="nome" placeholder="Nome do produto" value="<?= htmlspecialchars($nome) ?>">
+            <input type="number" step="0.01" name="preco_min" placeholder="Preço mín." value="<?= $preco_min ?>">
+            <input type="number" step="0.01" name="preco_max" placeholder="Preço máx." value="<?= $preco_max ?>">
 
-          <select name="categoria" id="categoria" onchange="atualizarMarcas()">
-              <option value="">Todas as categorias</option>
-              <?php while($c = $categorias->fetch_assoc()): ?>
-                  <option value="<?= $c['id_categoria'] ?>" <?= $c['id_categoria'] == $id_categoria ? 'selected' : '' ?>>
-                      <?= $c['nome_categoria'] ?>
-                  </option>
-              <?php endwhile; ?>
-          </select>
+            <select name="categoria" id="categoria" onchange="atualizarMarcas()">
+                <option value="">Todas as categorias</option>
+                <?php while ($c = $categorias->fetch_assoc()): ?>
+                    <option value="<?= $c['id_categoria'] ?>" <?= $c['id_categoria'] == $id_categoria ? 'selected' : '' ?>>
+                        <?= $c['nome_categoria'] ?>
+                    </option>
+                <?php endwhile; ?>
+            </select>
 
-          <select name="marca">
-              <option value="">Todas as marcas</option>
-              <?php while($m = $marcas->fetch_assoc()): ?>
-                  <option value="<?= $m['id_marca'] ?>" <?= $m['id_marca'] == $id_marca ? 'selected' : '' ?>>
-                      <?= $m['nome_marca'] ?>
-                  </option>
-              <?php endwhile; ?>
-          </select>
+            <select name="marca">
+                <option value="">Todas as marcas</option>
+                <?php while ($m = $marcas->fetch_assoc()): ?>
+                    <option value="<?= $m['id_marca'] ?>" <?= $m['id_marca'] == $id_marca ? 'selected' : '' ?>>
+                        <?= $m['nome_marca'] ?>
+                    </option>
+                <?php endwhile; ?>
+            </select>
 
-          <input class="busca" type="submit" value="Filtrar">
-      </form>
-  </div>
+            <input class="busca" type="submit" value="Filtrar">
+        </form>
+    </div>
 
-  <!-- Produtos -->
-  <div class="container-produtos">
-  <?php while ($p = $result->fetch_assoc()): ?>
-      <div class="card-produto">
-          <?php if ($p['imagem_principal']): ?>
-              <img src="<?= htmlspecialchars($p['imagem_principal']) ?>" alt="Imagem do produto">
-          <?php else: ?>
-              <img src="imagens/sem_imagem.jpg" alt="Sem imagem">
-          <?php endif; ?>
-         <div class="info">
-    <div class="titulo"><?= htmlspecialchars($p['nome_produto']) ?></div>
-    <div class="preco"><?= number_format($p['preco'], 2, ',', '.') ?> MZN</div>
-    
-    <p><strong>Categoria:</strong> <?= $p['nome_categoria'] ?></p>
-    <p><strong>Marca:</strong> <?= $p['nome_marca'] ?></p>
-    <a href="detalhesproduto.php?id=<?= $p['id_produto'] ?>" class="botao-detalhes">Ver detalhes</a>
-</div>
-
-      </div>
-  <?php endwhile; ?>
-  </div>
+    <!-- Produtos -->
+    <div class="container-produtos">
+        <?php while ($p = $result->fetch_assoc()): ?>
+            <div class="card-produto">
+                <?php if ($p['imagem_principal']): ?>
+                    <img src="<?= htmlspecialchars($p['imagem_principal']) ?>" alt="Imagem do produto">
+                <?php else: ?>
+                    <img src="imagens/sem_imagem.jpg" alt="Sem imagem">
+                <?php endif; ?>
+                <div class="info">
+                    <div class="titulo"><?= htmlspecialchars($p['nome_produto']) ?></div>
+                    <div class="preco"><?= number_format($p['preco'], 2, ',', '.') ?> MZN</div>
+                    <p><strong>Categoria:</strong> <?= $p['nome_categoria'] ?></p>
+                    <p><strong>Marca:</strong> <?= $p['nome_marca'] ?></p>
+                    <a href="detalhesproduto.php?id=<?= $p['id_produto'] ?>" class="botao-detalhes">Ver detalhes</a>
+                </div>
+            </div>
+        <?php endwhile; ?>
+    </div>
 </div>
 
 </body>
