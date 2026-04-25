@@ -3,26 +3,7 @@ include "conexao.php";
 
 if (session_status() === PHP_SESSION_NONE) session_start();
 
-// 🔄 AJAX: Carregar cidades da província
-if (isset($_GET['ajax']) && $_GET['ajax'] === 'cidades') {
-    $idprovincia = $_GET['provincia'] ?? null;
 
-    if (!$idprovincia) exit;
-
-    $sql = "SELECT idcidade, nome_cidade FROM cidade WHERE idprovíncia = ?";
-    $stmt = $conexao->prepare($sql);
-    $stmt->bind_param("i", $idprovincia);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    echo '<option value="">Cidade</option>';
-    while ($row = $result->fetch_assoc()) {
-        echo '<option value="' . $row['idcidade'] . '">' . htmlspecialchars($row['nome_cidade']) . '</option>';
-    }
-    exit;
-}
-
-$províncias = $conexao->query("SELECT idprovíncia, nome_província FROM provincia");
 $mensagem = "";
 $redirecionar = false; // sinaliza se deve redirecionar após o cadastro
 
@@ -34,11 +15,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email    = htmlspecialchars(trim($_POST['email']));
     $senha    = trim($_POST['senha']);
     $conf     = trim($_POST['conf']);
-    $idcidade = $_POST['cidade'];
-    $idprov   = $_POST['provincia'];
     $perfil   = 3;
 
-    if (empty($nome) || empty($apelido) || empty($numero) || empty($email) || empty($senha) || empty($conf) || empty($idcidade) || empty($idprov)) {
+    if (empty($nome) || empty($apelido) || empty($numero) || empty($email) || empty($senha) || empty($conf)) {
         $mensagem = "⚠️ Todos os campos são obrigatórios!";
     } elseif ($senha !== $conf) {
         $mensagem = "❌ A senha e a confirmação não coincidem.";
@@ -58,8 +37,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
             $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
 
-            $stmt = $conexao->prepare("INSERT INTO usuario (nome, apelido, telefone, email, senha_hash, idprovíncia, idcidade, idperfil) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("ssssssii", $nome, $apelido, $numero, $email, $senha_hash, $idprov, $idcidade, $perfil);
+            $stmt = $conexao->prepare("INSERT INTO usuario (nome, apelido, telefone, email, senha_hash,idperfil) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("ssssss", $nome, $apelido, $numero, $email, $senha_hash, $perfil);
 
             if ($stmt->execute()) {
                 $mensagem = "✅ Cadastro realizado com sucesso! Redirecionando para a tela de login...";
@@ -147,26 +126,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     </style>
 
-    <script>
-        function carregarCidades() {
-            const provincia = document.getElementById("provincia").value;
-            const cidadeSelect = document.getElementById("cidade");
 
-            if (!provincia) {
-                cidadeSelect.innerHTML = '<option value="">Cidade</option>';
-                cidadeSelect.disabled = true;
-                return;
-            }
-
-            fetch(`?ajax=cidades&provincia=${provincia}`)
-                .then(res => res.text())
-                .then(data => {
-                    cidadeSelect.innerHTML = data;
-                    cidadeSelect.disabled = false;
-                })
-                .catch(() => alert("Erro ao carregar cidades."));
-        }
-    </script>
 </head>
 <body>
 
@@ -192,18 +152,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <input type="email" name="email" required>
 
         
-        <label>Província:</label>
-        <select name="provincia" id="provincia" onchange="carregarCidades()" required>
-            <option value="">Selecione a Província</option>
-            <?php while ($p = $províncias->fetch_assoc()) { ?>
-                <option value="<?= $p['idprovíncia'] ?>"><?= htmlspecialchars($p['nome_província']) ?></option>
-            <?php } ?>
-        </select>
 
-        <label>Cidade:</label>
-        <select name="cidade" id="cidade" required disabled>
-            <option value="">Cidade</option>
-        </select>
 
         <label>Senha:</label>
         <input type="password" name="senha" required minlength="6">
