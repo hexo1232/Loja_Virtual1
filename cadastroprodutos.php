@@ -2,6 +2,7 @@
 include "conexao.php";
 require_once "require_login.php";
 include "usuario_info.php";
+include "cloudinary_helper.php";
 
 // 1. RESPOSTA PARA AJAX (CARREGAR MARCAS) - DEVE VIR ANTES DE QUALQUER HTML
 if (isset($_POST['acao']) && $_POST['acao'] == 'carregar_marcas') {
