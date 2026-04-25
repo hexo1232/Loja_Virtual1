@@ -11,7 +11,7 @@ if (!isset($_SESSION['usuario']['id_usuário'])) {
 
 $id_usuario = $_SESSION['usuario']['id_usuário'];
 
-$sql_pedidos = "SELECT * FROM Pedido WHERE id_usuário = ? ORDER BY data_pedido DESC";
+$sql_pedidos = "SELECT * FROM pedido WHERE id_usuário = ? ORDER BY data_pedido DESC";
 $stmt_pedidos = $conexao->prepare($sql_pedidos);
 $stmt_pedidos->bind_param("i", $id_usuario);
 $stmt_pedidos->execute();
@@ -169,14 +169,14 @@ $corAvatar = gerarCor($nomeCompleto);
 
         <?php
         $id_pedido = $pedido['id_pedido'];
-        $sql_itens = "
-            SELECT p.nome_produto, ip.quantidade, ip.preco_unitario, ip.subtotal,
-                   pi.caminho_imagem
-            FROM Item_Pedido ip
-            INNER JOIN Produto p ON ip.id_produto = p.id_produto
-            LEFT JOIN produto_imagem pi ON pi.id_produto = p.id_produto AND pi.imagem_principal = 1
-            WHERE ip.id_pedido = ?
-        ";
+      $sql_itens = "
+    SELECT p.nome_produto, ip.quantidade, ip.preco_unitario, ip.subtotal,
+           pi.caminho_imagem
+    FROM item_pedido ip
+    INNER JOIN produto p ON ip.id_produto = p.id_produto
+    LEFT JOIN produto_imagem pi ON pi.id_produto = p.id_produto AND pi.imagem_principal = 1
+    WHERE ip.id_pedido = ?
+";
         $stmt_itens = $conexao->prepare($sql_itens);
         $stmt_itens->bind_param("i", $id_pedido);
         $stmt_itens->execute();
@@ -201,9 +201,9 @@ $corAvatar = gerarCor($nomeCompleto);
 
         <?php
         $sql_pagamento = "SELECT status_pagamento, valor_pago, tipo_pagamento.tipo_pagamento 
-                          FROM Pagamento 
-                          INNER JOIN tipo_pagamento ON Pagamento.idtipo_pagamento = tipo_pagamento.idtipo_pagamento
-                          WHERE id_pedido = ?";
+                  FROM pagamento 
+                  INNER JOIN tipo_pagamento ON pagamento.idtipo_pagamento = tipo_pagamento.idtipo_pagamento
+                  WHERE id_pedido = ?";
         $stmt_pagamento = $conexao->prepare($sql_pagamento);
         $stmt_pagamento->bind_param("i", $id_pedido);
         $stmt_pagamento->execute();

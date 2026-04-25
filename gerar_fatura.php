@@ -1,7 +1,4 @@
 <?php
-require 'vendor/autoload.php';
-use Dompdf\Dompdf;
-use Dompdf\Options;
 include "conexao.php";
 require_once "require_login.php";
 
@@ -9,12 +6,11 @@ if (!isset($_GET['id_pedido']) || !is_numeric($_GET['id_pedido'])) {
     die("Pedido inválido.");
 }
 
-$id_pedido = $_GET['id_pedido'];
+$id_pedido = intval($_GET['id_pedido']);
 
-// Buscar dados do pedido
 $sql = "SELECT p.*, u.nome AS nome_usuario, u.email, u.telefone,
                prov.nome_província, c.nome_cidade, tp.tipo_pagamento
-        FROM Pedido p
+        FROM pedido p
         JOIN usuario u ON p.id_usuário = u.id_usuário
         JOIN provincia prov ON p.idprovíncia = prov.idprovíncia
         JOIN cidade c ON p.idcidade = c.idcidade
@@ -25,106 +21,78 @@ $stmt->bind_param("i", $id_pedido);
 $stmt->execute();
 $pedido = $stmt->get_result()->fetch_assoc();
 
-if (!$pedido) {
-    die("Pedido não encontrado.");
-}
+if (!$pedido) die("Pedido não encontrado.");
 
-// Buscar itens do pedido
-$itens = [];
-$sqlItens = "SELECT ip.*, pr.nome_produto, pr.preco,
-                (SELECT caminho_imagem FROM produto_imagem 
-                 WHERE id_produto = pr.id_produto AND imagem_principal = 1 LIMIT 1) AS imagem
-             FROM Item_Pedido ip
-             JOIN Produto pr ON ip.id_produto = pr.id_produto
+$sqlItens = "SELECT ip.*, pr.nome_produto, pr.preco
+             FROM item_pedido ip
+             JOIN produto pr ON ip.id_produto = pr.id_produto
              WHERE ip.id_pedido = ?";
 $stmt = $conexao->prepare($sqlItens);
 $stmt->bind_param("i", $id_pedido);
 $stmt->execute();
-$resultItens = $stmt->get_result();
-while ($row = $resultItens->fetch_assoc()) {
-    $itens[] = $row;
-}
+$itens = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-// Gerar QR code
-$qr_data = "Pedido Nº {$id_pedido}";
-$qr_code = "https://api.qrserver.com/v1/create-qr-code/?data=" . urlencode($qr_data) . "&size=100x100";
-
-// Estilos + Cabeçalho
-$html = '
-<style>
-    body { font-family: Arial, sans-serif; }
-    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
-    .logo { height: 60px; }
-    .info-pedido, .cliente { margin: 10px 0; }
-    .card { display: flex; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 8px; }
-    .card img { width: 100px; height: 100px; object-fit: cover; margin-right: 15px; }
-    .card .detalhes { flex: 1; }
-    .total { text-align: right; font-size: 1.2em; margin-top: 15px; font-weight: bold; }
-    .qr { float: right; }
-</style>
+$qr_url = "https://api.qrserver.com/v1/create-qr-code/?data=" . urlencode("Pedido #{$id_pedido}") . "&size=100x100";
+?>
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Fatura #<?= $id_pedido ?></title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 30px auto; color: #333; }
+        .header { display: flex; justify-content: space-between; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { background: #0056b3; color: white; padding: 10px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #ddd; }
+        .total { text-align: right; font-size: 1.3em; font-weight: bold; margin-top: 20px; }
+        .btn { padding: 10px 25px; background: #0056b3; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin-right: 10px; }
+        @media print { .no-print { display: none; } }
+    </style>
+</head>
+<body>
 
 <div class="header">
-    <img src="http://localhost/Loja_Virtual/lg.png" class="logo">
-    <div class="qr">
-        <img src="' . $qr_code . '">
+    <div>
+        <h2>Fatura Nº <?= $id_pedido ?></h2>
+        <p><strong>Data:</strong> <?= date('d/m/Y H:i', strtotime($pedido['data_pedido'])) ?></p>
     </div>
+    <img src="<?= $qr_url ?>" alt="QR Code">
 </div>
 
-<h2>Fatura Nº ' . $id_pedido . '</h2>
-
-<div class="cliente">
-    <strong>Cliente:</strong> ' . $pedido['nome_usuario'] . '<br>
-    <strong>Email:</strong> ' . $pedido['email'] . '<br>
-    <strong>Telefone:</strong> ' . $pedido['telefone'] . '<br>
-    <strong>Província:</strong> ' . $pedido['nome_província'] . '<br>
-    <strong>Cidade:</strong> ' . $pedido['nome_cidade'] . '<br>
-    <strong>Método:</strong> ' . $pedido['tipo_pagamento'] . '<br>
-</div>
+<h3>Dados do Cliente</h3>
+<p><strong>Nome:</strong> <?= htmlspecialchars($pedido['nome_usuario']) ?></p>
+<p><strong>Email:</strong> <?= htmlspecialchars($pedido['email']) ?></p>
+<p><strong>Telefone:</strong> <?= htmlspecialchars($pedido['telefone']) ?></p>
+<p><strong>Província:</strong> <?= htmlspecialchars($pedido['nome_província']) ?></p>
+<p><strong>Cidade:</strong> <?= htmlspecialchars($pedido['nome_cidade']) ?></p>
+<p><strong>Método de Pagamento:</strong> <?= htmlspecialchars($pedido['tipo_pagamento']) ?></p>
 
 <h3>Produtos</h3>
-';
+<table>
+    <tr>
+        <th>Produto</th>
+        <th>Qtd</th>
+        <th>Preço Unit.</th>
+        <th>Subtotal</th>
+    </tr>
+    <?php foreach ($itens as $item): ?>
+    <tr>
+        <td><?= htmlspecialchars($item['nome_produto']) ?></td>
+        <td><?= $item['quantidade'] ?></td>
+        <td><?= number_format($item['preco_unitario'], 2, ',', '.') ?> MZN</td>
+        <td><?= number_format($item['subtotal'], 2, ',', '.') ?> MZN</td>
+    </tr>
+    <?php endforeach; ?>
+</table>
 
-$base_img_dir = 'C:/xampp/htdocs/Loja_Virtual/uploads/'; // Caminho físico completo
+<div class="total">Total Geral: <?= number_format($pedido['valor_total'], 2, ',', '.') ?> MZN</div>
 
-foreach ($itens as $item) {
-    $imagem_nome = $item['imagem'] ?? 'sem_foto.png';
-    $caminho_fisico = $base_img_dir . basename($imagem_nome);
+<br><br>
+<div class="no-print">
+    <button class="btn" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+    <button class="btn" onclick="history.back()" style="background:#6c757d">← Voltar</button>
+</div>
 
-    if (file_exists($caminho_fisico)) {
-        $tipo = pathinfo($caminho_fisico, PATHINFO_EXTENSION);
-        $base64 = base64_encode(file_get_contents($caminho_fisico));
-        $src_img = 'data:image/' . $tipo . ';base64,' . $base64;
-    } else {
-        $src_img = 'https://via.placeholder.com/100?text=Sem+Imagem';
-    }
-
-    $html .= '
-    <div class="card">
-        <img src="' . $src_img . '" alt="">
-        <div class="detalhes">
-            <strong>' . $item['nome_produto'] . '</strong><br>
-            Quantidade: ' . $item['quantidade'] . '<br>
-            Preço: ' . number_format($item['preco_unitario'], 2, ',', '.') . ' MZN<br>
-            Subtotal: ' . number_format($item['subtotal'], 2, ',', '.') . ' MZN
-        </div>
-    </div>';
-}
-
-$html .= '<div class="total">Total Geral: ' . number_format($pedido['valor_total'], 2, ',', '.') . ' MZN</div>';
-
-// Geração do PDF
-$options = new Options();
-$options->set('isRemoteEnabled', true);
-$dompdf = new Dompdf($options);
-$dompdf->loadHtml($html);
-$dompdf->setPaper('A4', 'portrait');
-$dompdf->render();
-
-// Exibir ou baixar
-if (isset($_GET['view'])) {
-    echo $html;
-    echo '<br><br><button onclick="window.print()">Imprimir</button>';
-    echo '<a href="?id=' . $id_pedido . '">Baixar PDF</a>';
-} else {
-    $dompdf->stream("fatura_pedido_{$id_pedido}.pdf", ["Attachment" => false]);
-}
+</body>
+</html>
