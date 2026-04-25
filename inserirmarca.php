@@ -166,7 +166,7 @@ margin-bottom:10px;}
         <label>Associe á Categoria(s):</label>
         <div class="categorias">
             <?php
-            $categorias = $conexao->query("SELECT * FROM Categoria ORDER BY nome_categoria");
+           $categorias = $conexao->query("SELECT * FROM categoria ORDER BY nome_categoria");
             while ($cat = $categorias->fetch_assoc()) {
                 echo "<label><input type='checkbox' name='categorias[]' value='{$cat['id_categoria']}'> {$cat['nome_categoria']}</label>";
             }
