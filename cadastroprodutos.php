@@ -152,7 +152,7 @@ exit;
             <input type="text" name="nome" required placeholder="Ex: Smartphone XYZ">
 
             <label>Descrição Detalhada:</label>
-            <textarea name="descricao" rows="4" required placeholder="Caracterize o produto por completo"></textarea>
+           <textarea name="descricao" rows="4" placeholder="Caracterize o produto por completo(opcional)"></textarea>
 
             <div style="display: flex; gap: 20px;">
                 <div style="flex: 1;">
