@@ -260,14 +260,14 @@
 <section class="contact">
   <h2>Contactos</h2>
   <div class="contact-grid">
-    <div class="contact-card">📞 +258 84 123 4567</div>
-    <div class="contact-card">📧 suporte@minhaloja.co.mz</div>
-    <div class="contact-card">📍 Maputo, Moçambique</div>
+    <div class="contact-card">📞 +258 87 682 1594</div>
+    <div class="contact-card">📧 matiasmatavel@gmail.com</div>
+    <div class="contact-card">📍 Tete, Moçambique</div>
   </div>
 </section>
 
 <footer>
-  &copy; <?= date("Y") ?> Minha Loja
+  &copy; <?= date("Y") ?> Loja Virtual
 </footer>
 
 <script>
