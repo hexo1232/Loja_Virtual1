@@ -1,4 +1,5 @@
 <?php
+ob_start();
 include "conexao.php";
 require_once "require_login.php";
 include "usuario_info.php";

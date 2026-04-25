@@ -27,7 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $stmt->bind_param("ssdiiiii", $nome, $descricao, $preco, $quantidade, $id_categoria, $id_marca, $id_fornecedor, $id_produto);
     $stmt->execute();
 
-    $houveAlteracao = $stmt->affected_rows > 0; // inicialização correcta
+  $houveAlteracao = ($stmt->affected_rows >= 0); 
 
  if (isset($_POST['imagem_principal']) && intval($_POST['imagem_principal']) > 0) {
     $conexao->query("UPDATE produto_imagem SET imagem_principal = 0 WHERE id_produto = $id_produto");
@@ -53,14 +53,8 @@ foreach ($_FILES['imagens']['tmp_name'] as $index => $tmp_name) {
     }
 }
 
-    if ($houveAlteracao) {
-      header("Location: gerenciarprodutos.php?msg=atualizado&tipo=success");
+header("Location: gerenciarprodutos.php?msg=atualizado&tipo=success");
 exit;
-    } elseif (!empty($_GET['imagemRemovida'])) {
-        $mensagem = "🖼️ Imagem removida com sucesso!";
-    } else {
-        $mensagem = "ℹ️ Nenhuma modificação foi feita.";
-    }
 }
 
 $stmt = $conexao->prepare("SELECT * FROM produto WHERE id_produto = ?");
