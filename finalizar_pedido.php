@@ -2,7 +2,12 @@
 // ===== 1. REQUISITOS LOCAIS =====
 require_once "conexao.php";
 require_once "require_login.php";
-include "usuario_info.php";
+
+// Bloquear output do usuario_info.php quando é chamada AJAX do PayPal
+$is_paypal_ajax = isset($_POST['apenas_criar_pedido']);
+if (!$is_paypal_ajax) {
+    include "usuario_info.php";
+}
 
 // Ajax para carregar cidades
 if (isset($_GET['ajax']) && $_GET['ajax'] === 'cidades' && isset($_GET['provincia'])) {
@@ -62,7 +67,7 @@ while ($item = $resultItens->fetch_assoc()) {
 // ===== PROCESSAR POST =====
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
-    $telefone    = filter_var($_POST['telefone'], FILTER_SANITIZE_STRING);
+    $telefone = htmlspecialchars(trim($_POST['telefone']));
     $email       = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
     $idprovincia = filter_var($_POST['idprovincia'], FILTER_VALIDATE_INT);
     $idcidade    = filter_var($_POST['idcidade'], FILTER_VALIDATE_INT);
