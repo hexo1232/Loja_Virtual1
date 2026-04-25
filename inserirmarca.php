@@ -8,9 +8,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $categorias = $_POST['categorias'] ?? [];
 
     // Verifica se a marca já existe
-    $verificar = $conexao->prepare("SELECT * FROM Marca WHERE nome_marca = ?");
-    $verificar->bind_param("s", $nome_marca);
-    $verificar->execute();
+   $verificar = $conexao->prepare("SELECT * FROM marca WHERE nome_marca = ?");
+$verificar->bind_param("s", $nome_marca);
+$verificar->execute();
     $verifica_result = $verificar->get_result();
 
     if ($verifica_result->num_rows > 0) {
@@ -19,14 +19,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo "<p style='color:red;'>Selecione ao menos uma categoria.</p>";
     } else {
         // Insere a marca
-        $inserir = $conexao->prepare("INSERT INTO Marca (nome_marca) VALUES (?)");
-        $inserir->bind_param("s", $nome_marca);
-        $inserir->execute();
+        $inserir = $conexao->prepare("INSERT INTO marca (nome_marca) VALUES (?)");
+$inserir->bind_param("s", $nome_marca);
+$inserir->execute();
 
         $id_marca = $inserir->insert_id;
 
         // Associa a marca às categorias selecionadas
-        $associar = $conexao->prepare("INSERT IGNORE INTO Categoria_Marca (id_categoria, id_marca) VALUES (?, ?)");
+$associar = $conexao->prepare("INSERT IGNORE INTO categoria_marca (id_categoria, id_marca) VALUES (?, ?)");
         foreach ($categorias as $id_categoria) {
             $associar->bind_param("ii", $id_categoria, $id_marca);
             $associar->execute();
